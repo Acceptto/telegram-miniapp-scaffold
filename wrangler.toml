@@ -3,9 +3,9 @@ main = "index.js"
 compatibility_date = "2023-10-07"
 
 [[d1_databases]]
-binding = "DB"                                       # i.e. available in your Worker on env.DB
+binding = "DB"
 database_name = "telegram-calendar"
 database_id = "18d4bb4d-0fa2-4753-927b-5d820701e1db"
 
 [site]
-pages_build_output_dir = "dist"
+bucket = "dist"
