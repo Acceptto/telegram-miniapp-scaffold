@@ -1,0 +1,8 @@
+name = "telegram-calendar"
+main = "index.js"
+compatibility_date = "2023-10-07"
+
+[[d1_databases]]
+binding = "DB" # i.e. available in your Worker on env.DB
+database_name = "telegram-calendar"
+database_id = "ea374330-a168-4d1d-aeec-7ba7d8fb654b"

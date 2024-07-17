@@ -1,0 +1,155 @@
+name: Check inputs and gather data
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    outputs:
+      worker_name:
+        value: ${{ jobs.deploy.outputs.worker_name }}
+        description: The name of the CloudFlare worker
+      worker_subdomain:
+        value: ${{ jobs.deploy.outputs.subdomain }}
+        description: The subdomain of the CloudFlare worker
+      worker_url:
+        value: https://${{ jobs.deploy.outputs.worker_name }}.${{ jobs.deploy.outputs.subdomain }}
+        description: The URL of the CloudFlare worker  
+      pages_url:
+        value: ${{ jobs.deploy.outputs.pages_url }}
+        description: The URL of the CloudFlare Pages deployment
+      d1_database_name:
+        value: ${{ jobs.deploy.outputs.database_name }}
+        description: The name of the CloudFlare database as described in wrangler.toml
+      d1_apparent_database_name:
+        value: ${{ jobs.deploy.outputs.database_apparent_name }}
+        description: The name of the CloudFlare database as determined by its id
+      d1_database_id:
+        value: ${{ jobs.deploy.outputs.database_id }}
+        description: The id of the CloudFlare database as described in wrangler.toml
+      d1_apparent_database_id:
+        value: ${{ jobs.deploy.outputs.database_apparent_id }}
+        description: The id of the CloudFlare database as determined by its name
+
+jobs:
+  deploy:
+    name: Check inputs and gather data
+    runs-on: ubuntu-latest
+    outputs:
+      worker_name: ${{ steps.determine_worker.outputs.name }}
+      database_name: ${{ steps.determine_database.outputs.name }}
+      database_id: ${{ steps.determine_database.outputs.id }}
+      subdomain: ${{ steps.get_subdomain.outputs.subdomain }}
+      database_apparent_id: ${{ steps.get_db_id_by_name.outputs.uuid }}
+      database_apparent_name: ${{ steps.get_db_name_by_id.outputs.name }}
+      pages_url: ${{ steps.get_pages_url.outputs.url }}
+    steps:
+      - name: Check that the secrets are set in the repository
+        id: check_secrets_set
+        env: 
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          result=0
+          printf "### 🔐 Checking if secrets are set \n\n" >> $GITHUB_STEP_SUMMARY
+          printf "| Secret | Description |\n" >> $GITHUB_STEP_SUMMARY
+          printf "| --- | --- |\n" >> $GITHUB_STEP_SUMMARY
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            printf "| ❌ \`CLOUDFLARE_API_TOKEN\`| Please go to [CloudFlare Dashboard](https://dash.cloudflare.com/profile/api-tokens) and create a Worker token. For this project we need access to Workers, D1 and Pages. |\n" >> $GITHUB_STEP_SUMMARY
+            echo "::error::Secret CLOUDFLARE_API_TOKEN not set"
+            result=1
+          else 
+            printf "| ✅ \`CLOUDFLARE_API_TOKEN\` | Found |\n" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            printf "| ❌ \`CLOUDFLARE_ACCOUNT_ID\` | Please go to [CloudFlare Workers Page](https://dash.cloudflare.com/?to=/:account/workers) and copy the account id from the right sidebar. Note that you might need to create a \"Hello World\" worker before you see the account id in the interface. |\n" >> $GITHUB_STEP_SUMMARY
+            echo "::error::Secret CLOUDFLARE_ACCOUNT_ID not set"
+            result=1
+          else 
+            printf "| ✅ \`CLOUDFLARE_ACCOUNT_ID\` | Found |\n" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -z "$TELEGRAM_BOT_TOKEN" ]; then
+            printf "| ❌ \`TELEGRAM_BOT_TOKEN\` | Please create a Telegram bot via [@BotFather](https://t.me/botfather) and set the token as a secret in your repository. |\n" >> $GITHUB_STEP_SUMMARY
+            echo "::error::Secret TELEGRAM_BOT_TOKEN not set"
+            result=1
+          else 
+            printf "| ✅ \`TELEGRAM_BOT_TOKEN\` | Found |\n" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          printf "\n\nTo set the secrets, go to [current repository's secrets settings](${{ github.server_url }}/${{ github.repository }}/settings/secrets/actions)\n" >> $GITHUB_STEP_SUMMARY
+          exit $result
+      
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install tomlq
+        run: |
+          pip install yq
+      
+      - name: Parse toml to get worker name
+        id: determine_worker
+        run: |
+          tomlq -r .name ./wrangler.toml | echo name=$(cat) >> $GITHUB_OUTPUT      
+      
+      - name: Parse toml to get database name and id
+        id: determine_database
+        run: |
+          tomlq -r .d1_databases[0].database_name ./wrangler.toml | echo name=$(cat) >> $GITHUB_OUTPUT
+          tomlq -r .d1_databases[0].database_id ./wrangler.toml | echo id=$(cat) >> $GITHUB_OUTPUT
+           
+      - name: Call CloudFlare API to determine the workers.dev subdomain
+        id: get_subdomain
+        env: 
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          curl -X GET "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/subdomain" \
+          -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" | jq -r '.result.subdomain' | echo subdomain=$(cat).workers.dev >> $GITHUB_OUTPUT
+           
+      - name: Call CloudFlare API to find the database id by name
+        id: get_db_id_by_name
+        env: 
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          curl -X GET "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/d1/database?name=${{ steps.determine_database.outputs.name }}" \
+          -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" | jq -r '.result[0].uuid' | echo uuid=$(cat) >> $GITHUB_OUTPUT           
+      
+      - name: Call CloudFlare API to find the database name by id
+        id: get_db_name_by_id
+        env: 
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          curl -X GET "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/d1/database/${{ steps.determine_database.outputs.id }}" \
+          -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" | jq -r '.result[0].name' | echo name=$(cat) >> $GITHUB_OUTPUT
+      
+      - name: Call CloudFlare API to find Pages URL
+        id: get_pages_url
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          curl -X GET https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/${{ steps.determine_worker.outputs.name }} \
+          -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" | jq -r '.result.subdomain' | echo url=https://$(cat) >> $GITHUB_OUTPUT
+      
+      - name: Show all the outputs in summary
+        id: show_outputs
+        run: |
+          printf "\n\n<details> \n" >> $GITHUB_STEP_SUMMARY
+          printf "<summary> 🔍Gathering data</summary>\n\n" >> $GITHUB_STEP_SUMMARY
+          printf "| Name | Value | Description |\n" >> $GITHUB_STEP_SUMMARY
+          printf "| --- | --- | --- |\n" >> $GITHUB_STEP_SUMMARY
+          printf "| worker_name | \`${{ steps.determine_worker.outputs.name }}\` | The name of the worker set in \`wrangler.toml\` |\n" >> $GITHUB_STEP_SUMMARY
+          printf "| worker_subdomain | \`${{ steps.get_subdomain.outputs.subdomain }}\` | The subdomain for workers set up in your CloudFlare account |\n" >> $GITHUB_STEP_SUMMARY
+          printf "| worker_url | \`https://${{ steps.determine_worker.outputs.name }}.${{ steps.get_subdomain.outputs.subdomain }}\` | The full URL worker will be deployed to or is already deployed to |\n" >> $GITHUB_STEP_SUMMARY
+          printf "| pages_url | \`${{ steps.get_pages_url.outputs.url }}\` | The full URL Pages are deployed to. Null if not yet deployed. |\n" >> $GITHUB_STEP_SUMMARY
+          printf "| d1_database_name | \`${{ steps.determine_database.outputs.name }}\` | The name of the D1 database set in \`wrangler.toml\` |\n" >> $GITHUB_STEP_SUMMARY
+          printf "| d1_database_id | \`${{ steps.determine_database.outputs.id }}\` | The id of the D1 database set in \`wrangler.toml\` |\n" >> $GITHUB_STEP_SUMMARY
+          printf "| d1_apparent_database_name | \`${{ steps.get_db_name_by_id.outputs.name }}\` | The name of the database with the id from \`d1_database_id\` |\n" >> $GITHUB_STEP_SUMMARY
+          printf "| d1_apparent_database_id | \`${{ steps.get_db_id_by_name.outputs.uuid }}\` | The id of the database with the name from \`d1_database_name\` |\n" >> $GITHUB_STEP_SUMMARY
+          printf "\n\n</details>\n" >> $GITHUB_STEP_SUMMARY
+          printf "\n\n" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.get_db_id_by_name.outputs.uuid }}" != "${{ steps.determine_database.outputs.id }}" ] && [ "${{ steps.get_db_id_by_name.outputs.uuid }}" != "null" ] && [ -n "${{ steps.get_db_id_by_name.outputs.uuid }}" ]; then
+            printf "⚠️ The id of the database with the name from \`d1_database_name\` is different from the id in \`wrangler.toml\`. This is probably because you've forked a repository without changing the database id. The deployment scripts will handle it, but the wrangler tool won't. Please update the database id in \`wrangler.toml\` to be \`${{ steps.get_db_id_by_name.outputs.uuid }}\`.\n\n" >> $GITHUB_STEP_SUMMARY
+          fi
