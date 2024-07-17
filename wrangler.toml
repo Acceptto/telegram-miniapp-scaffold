@@ -1,4 +1,7 @@
 name = "telegram-calendar-backend"
+
+# For Cloudflare Pages
+pages_build_output_dir = "./dist"
 compatibility_date = "2023-10-07"
 
 # For Cloudflare Workers
@@ -8,7 +11,3 @@ main = "index.js"
 binding = "DB"
 database_name = "telegram-calendar"
 database_id = "18d4bb4d-0fa2-4753-927b-5d820701e1db"
-
-# If you also want to serve static assets from Workers
-[site]
-bucket = "dist"
