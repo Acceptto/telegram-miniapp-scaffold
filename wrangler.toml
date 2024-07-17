@@ -1,4 +1,5 @@
 name = "telegram-calendar"
+pages_build_output_dir = "./dist"
 main = "index.js"
 compatibility_date = "2023-10-07"
 
@@ -6,6 +7,3 @@ compatibility_date = "2023-10-07"
 binding = "DB"
 database_name = "telegram-calendar"
 database_id = "18d4bb4d-0fa2-4753-927b-5d820701e1db"
-
-[site]
-bucket = "dist"
