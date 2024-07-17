@@ -1,4 +1,4 @@
-name = "telegram-calendar"
+name = "miniapp-scafolding"
 compatibility_date = "2023-10-07"
 
 # For Cloudflare Workers
