@@ -7,4 +7,4 @@ main = "index.js"
 [[d1_databases]]
 binding = "DB"
 database_name = "telegram-calendar"
-database_id = "18d4bb4d-0fa2-4753-927b-5d820701e1db"
+database_id = "df5dbd5b-b23d-404e-97e2-d15fe5a8123e"
