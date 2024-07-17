@@ -1,7 +1,4 @@
-name = "telegram-calendar-backend"
-
-# For Cloudflare Pages
-pages_build_output_dir = "./dist"
+name = "telegram-calendar"
 compatibility_date = "2023-10-07"
 
 # For Cloudflare Workers
