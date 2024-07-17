@@ -19,15 +19,15 @@ The solution is fully deployable with GitHub Actions included with the repo. All
 
 Fork the repository, then go to Settings > Secrets and add the following secrets:
 
-* `CF_API_TOKEN` - Cloudflare API token with permissions to create Workers, D1 databases and Pages
-* `CF_ACCOUNT_ID` - Cloudflare account ID
+* `CLOUDFLARE_API_TOKEN` - Cloudflare API token with permissions to create Workers, D1 databases and Pages
+* `CLOUDFLARE_ACCOUNT_ID` - Cloudflare account ID
 * `TELEGRAM_BOT_TOKEN` - Telegram Bot token
 
 ### Getting the values for secrets
 
 ![Getting account ID](./docs/img/cf-accountId.svg)
 
-Go to [CloudFlare Workers Page](https://dash.cloudflare.com/?to=/:account/workers) and copy the account id from the right sidebar. Note that if you have no workers yet, you'll need to create a worker before you can see the account id. Luckily, there's a button for a "Hello World" worker right there. Once you've gotten the account id, set it in `CF_ACCOUNT_ID` secret.
+Go to [CloudFlare Workers Page](https://dash.cloudflare.com/?to=/:account/workers) and copy the account id from the right sidebar. Note that if you have no workers yet, you'll need to create a worker before you can see the account id. Luckily, there's a button for a "Hello World" worker right there. Once you've gotten the account id, set it in `CLOUDFLARE_ACCOUNT_ID` secret.
 
 While you're in that interface, you can also adjust the subdomain to your liking.
 
@@ -43,7 +43,7 @@ Go to [CloudFlare Dashboard](https://dash.cloudflare.com/profile/api-tokens) and
 * `User:Memberships:Read`
 * `Zone:Workers Routes:Edit`
 
-Once you've generated the token, set it in `CF_API_TOKEN` secret.
+Once you've generated the token, set it in `CLOUDFLARE_API_TOKEN` secret.
 
 For getting a telegram token, go to [@BotFather](https://t.me/BotFather) and create a new bot with the `/newbot` command. Once you've created the bot, copy the token and set it in `TELEGRAM_BOT_TOKEN` secret.
 
@@ -128,7 +128,7 @@ There are no dependencies except for `itty-router`, which makes the whole affair
 
 For database we use CloudFlare D1, which is a version of SQLite. We initialize it with `init.sql` file.
 
-The frontend code is a React app built with Vite. The entry point is `webapp/src/main.jsx`. This is mostly a standard React app, except it uses excellent [@vkruglikov/react-telegram-web-app](https://github.com/vkruglikov/react-telegram-web-app) to wrap around the telegram mini app API.
+The frontend code is a React app built with Vite. The entry point is `webapp/src/main.jsx`. This is mostly a standard React app, except it uses excellent [@telegram-apps/sdk-react](https://github.com/Telegram-Mini-Apps/telegram-apps/tree/master/packages/sdk-react) to wrap around the telegram mini app API. For consistent native-feel design we are usuing [@telegram-apps/telegram-ui](https://github.com/Telegram-Mini-Apps/TelegramUI)
 
 The frontend code can be replaced with anything that can be served as a static website. The only requirement is that the built code after `npm run build` is in the `webapp/dist` folder.
 
@@ -140,3 +140,6 @@ All the needed checks are done:
 * The bot checks the signatures of the Mini-app requests and validates the user
 * The bot checks the token of initialization request sent during deployment
 * CORS between the frontend and the backend is locked down to specifically used domains
+
+* * Cloudflare Workers operate in a unique environment that is neither a browser nor a Node.js server environment. The code runs on the Cloudflare network, whose runtime environment resembles a web browser's Service Worker.
+Thats why to work with cryptography in Cloudflare Pages, you need to use the Web Crypto API instead of Node.js modules.
