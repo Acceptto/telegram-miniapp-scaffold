@@ -101,7 +101,7 @@ Make sure that the you've deployed at least once and set your own database id in
 
 Then create a `.dev.vars` file using `.dev.vars.example` as a template and fill in the values. If you set `TELEGRAM_USE_TEST_API` to true you'll be able to use the bot in the [Telegram test environment](https://core.telegram.org/bots/webapps#testing-mini-apps), otherwise you'll be connected to production. Keep in mind that tokens between the environments are different.
 
-Do an `npm install` and initialize the database with `npx wrangler d1 execute DB --file .\init.sql --local`.
+Do an `npm install` and initialize the database with `npx wrangler d1 execute DB --file worker/sql/init.sql --local`.
 
 Now you are ready to run the worker with `npx wrangler dev`. The worker will be waiting for you at <http://localhost:8787/>.
 
@@ -120,15 +120,15 @@ done
 
 ## Code information
 
-The backend code is a CloudFlare Worker. Start with `index.js` to get a general idea of how it works.
+The backend code is a CloudFlare Worker. Start with `index.ts` to get a general idea of how it works.
 
-We export `telegram.js` for working with telegram, `db.js` for working with the database and `cryptoUtils.js` for cryptography.
+We export `telegram.ts` for working with telegram, `db.ts` for working with the database and `cryptoUtils.ts` for cryptography.
 
 There are no dependencies except for `itty-router`, which makes the whole affair blazing fast.
 
 For database we use CloudFlare D1, which is a version of SQLite. We initialize it with `init.sql` file.
 
-The frontend code is a React app built with Vite. The entry point is `webapp/src/main.jsx`. This is mostly a standard React app, except it uses excellent [@telegram-apps/sdk-react](https://github.com/Telegram-Mini-Apps/telegram-apps/tree/master/packages/sdk-react) to wrap around the telegram mini app API. For consistent native-feel design we are usuing [@telegram-apps/telegram-ui](https://github.com/Telegram-Mini-Apps/TelegramUI)
+The frontend code is a React app built with Vite. The entry point is `webapp/src/main.tsx`. This is mostly a standard React app, except it uses excellent [@telegram-apps/sdk-react](https://github.com/Telegram-Mini-Apps/telegram-apps/tree/master/packages/sdk-react) to wrap around the telegram mini app API. For consistent native-feel design we are usuing [@telegram-apps/telegram-ui](https://github.com/Telegram-Mini-Apps/TelegramUI)
 
 The frontend code can be replaced with anything that can be served as a static website. The only requirement is that the built code after `npm run build` is in the `webapp/dist` folder.
 
