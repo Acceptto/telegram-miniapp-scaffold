@@ -1,4 +1,3 @@
-import '@/App.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useIntegration } from '@telegram-apps/react-router-integration';
 import {
