@@ -3,10 +3,11 @@
 	"version": "0.0.0",
 	"private": true,
 	"scripts": {
-		"deploy": "wrangler deploy index.js",
-		"dev": "wrangler dev index.js --local true",
+		"deploy": "wrangler deploy index.ts",
+		"dev": "wrangler dev index.ts --local true",
 		"dev:db:init": "wrangler d1 execute DB --file init.sql --local",
-		"dev:db:drop": "wrangler d1 execute DB --file drop.sql  --local"
+		"dev:db:drop": "wrangler d1 execute DB --file drop.sql  --local",
+		"type-check": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@vlad-yakovlev/telegram-md": "^2.0.0",
