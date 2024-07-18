@@ -18,6 +18,8 @@ import { Navigate, Route, Router, Routes, RouteObject } from 'react-router-dom';
 
 import { routes } from '@/navigation/routes';
 
+import '@telegram-apps/telegram-ui/dist/styles.css';
+
 const queryClient = new QueryClient();
 
 export const App: React.FC = () => {
