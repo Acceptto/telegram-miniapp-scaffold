@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import { RouteObject } from 'react-router-dom';
-import Initializer from '@/pages/Initializer/Initializer';
+import InitializerPage from '@/pages/InitializerPage/InitializerPage';
 import { Spinner } from '@telegram-apps/telegram-ui';
 
 const NotFound = React.lazy(() => import('@/pages/NotFound/NotFound'));
@@ -12,15 +12,15 @@ const LazyWrapper: React.FC<{ element: React.ReactNode }> = ({ element }) => (
 export const routes: RouteObject[] = [
 	{
 		path: '/',
-		element: <Initializer />,
+		element: <InitializerPage />,
 	},
 	{
 		path: '/home',
-		element: <Initializer />,
+		element: <InitializerPage />,
 	},
 	{
 		path: '/calendar',
-		element: <Initializer />,
+		element: <InitializerPage />,
 	},
 	{
 		path: '*',
