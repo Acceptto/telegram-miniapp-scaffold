@@ -8,20 +8,3 @@
 	margin-bottom: 1rem;
 	font-size: 1.5rem;
 }
-
-.calendarWrapper {
-	--rdp-cell-size: 40px;
-	--rdp-accent-color: var(--tg-theme-button-color);
-	--rdp-background-color: var(--tg-theme-bg-color);
-	--rdp-accent-color-dark: var(--tg-theme-button-color);
-	--rdp-background-color-dark: var(--tg-theme-bg-color);
-	--rdp-outline: 2px solid var(--tg-theme-button-color);
-	--rdp-outline-selected: 3px solid var(--tg-theme-button-color);
-}
-
-.calendarWrapper :global(.rdp-day_selected),
-.calendarWrapper :global(.rdp-day_selected:focus-visible),
-.calendarWrapper :global(.rdp-day_selected:hover) {
-	background-color: var(--tg-theme-button-color);
-	color: var(--tg-theme-button-text-color);
-}

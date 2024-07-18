@@ -13,6 +13,7 @@ import { Text, Spinner } from '@telegram-apps/telegram-ui';
 
 import { sendDates } from '@/api';
 import 'react-day-picker/dist/style.css';
+import styles from './Home.module.css';
 
 interface HomeProps {
 	token: string;
@@ -115,18 +116,16 @@ const Home: React.FC<HomeProps> = ({ token }) => {
 	return (
 		<div className={styles.container}>
 			<h2 className={styles.title}>Pick proposed dates</h2>
-			<div className={styles.calendarWrapper}>
-				<DayPicker
-					mode="multiple"
-					weekStartsOn={1}
-					min={1}
-					max={5}
-					selected={selectedDates}
-					onSelect={handleSelectDates}
-					footer={footer}
-					disabled={dateMutation.isLoading}
-				/>
-			</div>
+			<DayPicker
+				mode="multiple"
+				weekStartsOn={1}
+				min={1}
+				max={5}
+				selected={selectedDates}
+				onSelect={handleSelectDates}
+				footer={footer}
+				disabled={dateMutation.isLoading}
+			/>
 		</div>
 	);
 };
