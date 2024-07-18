@@ -113,18 +113,20 @@ const Home: React.FC<HomeProps> = ({ token }) => {
 	}
 
 	return (
-		<div>
-			<h2>Pick proposed dates</h2>
-			<DayPicker
-				mode="multiple"
-				weekStartsOn={1}
-				min={1}
-				max={5}
-				selected={selectedDates}
-				onSelect={handleSelectDates}
-				footer={footer}
-				disabled={dateMutation.isLoading}
-			/>
+		<div className={styles.container}>
+			<h2 className={styles.title}>Pick proposed dates</h2>
+			<div className={styles.calendarWrapper}>
+				<DayPicker
+					mode="multiple"
+					weekStartsOn={1}
+					min={1}
+					max={5}
+					selected={selectedDates}
+					onSelect={handleSelectDates}
+					footer={footer}
+					disabled={dateMutation.isLoading}
+				/>
+			</div>
 		</div>
 	);
 };

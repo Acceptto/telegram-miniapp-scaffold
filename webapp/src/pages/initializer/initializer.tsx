@@ -55,7 +55,7 @@ const ErrorMessage: React.FC<{ message: string; onRetry: () => void }> = ({ mess
 	</div>
 );
 
-const MainPage: React.FC = () => {
+const initializer: React.FC = () => {
 	const { isLoading, isError, error, data, refetch } = useInitMiniApp();
 
 	const errorMessage = useMemo(() => {
@@ -80,4 +80,4 @@ const MainPage: React.FC = () => {
 	return <Home token={token} />;
 };
 
-export default MainPage;
+export default initializer;
