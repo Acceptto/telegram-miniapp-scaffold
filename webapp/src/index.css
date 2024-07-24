@@ -18,6 +18,7 @@ body {
 	position: relative;
 	background: var(--tg-theme-secondary-bg-color);
 	color: var(--tg-theme-text-color);
+	overflow: hidden;
 }
 
 #root {
@@ -66,4 +67,9 @@ a {
 /* fix for browser version to avoid monospace */
 textarea {
 	font-family: inherit;
+}
+
+/* Hide scrollbars in WebKit-based browsers */
+::-webkit-scrollbar {
+	display: none;
 }

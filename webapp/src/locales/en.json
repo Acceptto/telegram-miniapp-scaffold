@@ -1,0 +1,35 @@
+{
+	"error": {
+		"initDataUnavailable": "Initialization data is not available",
+		"initDataRawUnavailable": "Raw initialization data is not available",
+		"tokenMissing": "Initialization failed: Token is missing",
+		"unknown": "An unknown error occurred",
+		"animationLoad": "Failed to load animation. Please try again."
+	},
+	"common": {
+		"retry": "Retry",
+		"next": "Next",
+		"getStarted": "Get Started"
+	},
+	"onboarding": {
+		"title": "Onboarding slides, swipe to navigate",
+		"slides": [
+			{
+				"title": "Welcome",
+				"content": "Welcome to our group meetup facilitator! Let's get you started."
+			},
+			{
+				"title": "Create Events",
+				"content": "Easily create and schedule group events with just a few taps."
+			},
+			{
+				"title": "Vote on Dates",
+				"content": "Let your group members vote on the best dates for everyone."
+			},
+			{
+				"title": "Instant Notifications",
+				"content": "Get notified instantly about event updates and confirmations."
+			}
+		]
+	}
+}

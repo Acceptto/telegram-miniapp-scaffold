@@ -1,0 +1,35 @@
+{
+	"error": {
+		"initDataUnavailable": "Los datos de inicialización no están disponibles",
+		"initDataRawUnavailable": "Los datos brutos de inicialización no están disponibles",
+		"tokenMissing": "Error de inicialización: Falta el token",
+		"unknown": "Se produjo un error desconocido",
+		"animationLoad": "No se pudo cargar la animación. Por favor, inténtelo de nuevo."
+	},
+	"common": {
+		"retry": "Reintentar",
+		"next": "Siguiente",
+		"getStarted": "Comenzar"
+	},
+	"onboarding": {
+		"title": "Diapositivas de introducción, desliza para navegar",
+		"slides": [
+			{
+				"title": "Bienvenido",
+				"content": "¡Bienvenido a nuestro facilitador de reuniones grupales! Comencemos."
+			},
+			{
+				"title": "Crea eventos",
+				"content": "Crea y programa eventos grupales fácilmente con solo unos toques."
+			},
+			{
+				"title": "Vota por fechas",
+				"content": "Permite que los miembros del grupo voten por las mejores fechas para todos."
+			},
+			{
+				"title": "Notificaciones instantáneas",
+				"content": "Recibe notificaciones instantáneas sobre actualizaciones y confirmaciones de eventos."
+			}
+		]
+	}
+}

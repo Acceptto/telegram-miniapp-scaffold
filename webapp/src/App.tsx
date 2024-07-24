@@ -11,6 +11,7 @@ import {
 	useViewport,
 	useClosingBehavior,
 	useBackButton,
+	useSwipeBehavior,
 } from '@telegram-apps/sdk-react';
 import { AppRoot } from '@telegram-apps/telegram-ui';
 import React, { useEffect, useMemo, useCallback } from 'react';
@@ -29,11 +30,13 @@ export const App: React.FC = () => {
 	const viewport = useViewport();
 	const closingBehavior = useClosingBehavior();
 	const backButton = useBackButton();
+	//const swipeBehavior = useSwipeBehavior();
 
 	useEffect(() => {
 		if (viewport) {
 			bindViewportCSSVars(viewport);
 			viewport.expand();
+			//swipeBehavior.disableVerticalSwipe();
 		}
 	}, [viewport]);
 
