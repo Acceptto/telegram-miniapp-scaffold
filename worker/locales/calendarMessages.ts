@@ -1,8 +1,8 @@
-import { md } from '@vlad-yakovlev/telegram-md';
+import { Markdown, md } from '@vlad-yakovlev/telegram-md';
 type LanguageTag = string; // e.g., 'en', 'es', 'fr', etc.
 
 export function getCalendarLinkMessage(language: LanguageTag): string {
-	let message: string;
+	let message: Markdown;
 	switch (language) {
 		case 'es':
 			message = md`
@@ -49,7 +49,7 @@ export function getCalendarShareMessage(
 	botName: string,
 	calendarRef: string
 ): string {
-	let message: string;
+	let message: Markdown;
 	switch (language) {
 		case 'es':
 			message = md`${userName} usa ${md.bold('Group Meetup Facilitator')} para organizar una reunión grupal!

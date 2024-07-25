@@ -1,8 +1,8 @@
-import { md } from '@vlad-yakovlev/telegram-md';
+import { Markdown, md } from '@vlad-yakovlev/telegram-md';
 type LanguageTag = string; // e.g., 'en', 'es', 'fr', etc.
 
 export function getGreetingMessage(language: LanguageTag, botName: string): string {
-	let message: string;
+	let message: Markdown;
 	switch (language) {
 		case 'es':
 			message = md`¡Hola!
