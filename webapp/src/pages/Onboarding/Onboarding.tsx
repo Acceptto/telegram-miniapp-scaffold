@@ -4,7 +4,6 @@ import {
 	useMiniApp,
 	useBackButton,
 	useHapticFeedback,
-	LaunchParams,
 	useLaunchParams,
 } from '@telegram-apps/sdk-react';
 import { LargeTitle, Subheadline, Caption, Steps, Link } from '@telegram-apps/telegram-ui';
