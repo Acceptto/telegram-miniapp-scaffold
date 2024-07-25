@@ -1,10 +1,10 @@
 import en from '../locales/en.json';
 import ru from '../locales/ru.json';
-import ua from '../locales/ua.json';
+import uk from '../locales/uk.json';
 import es from '../locales/es.json';
 import ptBR from '../locales/pt-BR.json';
 
-const translations: { [key: string]: any } = { en, ru, ua, es, 'pt-BR': ptBR };
+const translations: { [key: string]: any } = { en, ru, uk, es, 'pt-BR': ptBR };
 
 export const getTranslation = (
 	languageCode: string,
