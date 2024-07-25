@@ -4,8 +4,10 @@ import {
 	useMiniApp,
 	useBackButton,
 	useHapticFeedback,
+	LaunchParams,
+	useLaunchParams,
 } from '@telegram-apps/sdk-react';
-import { LargeTitle, Subheadline, Caption, Steps } from '@telegram-apps/telegram-ui';
+import { LargeTitle, Subheadline, Caption, Steps, Link } from '@telegram-apps/telegram-ui';
 import Lottie, { LottieRefCurrentProps } from 'lottie-light-react';
 import { useDrag } from '@use-gesture/react';
 import { useLanguage } from '@/utils/LanguageContext';
@@ -62,6 +64,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 	});
 
 	const miniApp = useMiniApp();
+	const launch = useLaunchParams();
 	const mainButton = useMainButton();
 	const backButton = useBackButton();
 	const hapticFeedback = useHapticFeedback();
@@ -206,12 +209,23 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 									/>
 								)}
 							</div>
-							<LargeTitle className={styles.title}>{slide.title}</LargeTitle>
+							<LargeTitle className={styles.title}>
+								{index === 0 && launch.initData?.user?.firstName
+									? `${slide.title}, ${launch.initData.user.firstName}!`
+									: slide.title}
+							</LargeTitle>
 							<Subheadline className={styles.content}>{slide.content}</Subheadline>
 						</div>
 					))}
 				</div>
 			</div>
+			{state.currentSlide === slides.length - 1 && (
+				<Caption level="2" weight="3" className={styles.termsText}>
+					{t('onboarding.termsPrefix')} <br />
+					<Link href="https://telegram.org/tos/mini-apps">{t('onboarding.termsLink')}</Link>{' '}
+					{t('common.and')} <Link href="/privacy">{t('onboarding.privacyLink')}</Link>
+				</Caption>
+			)}
 		</div>
 	);
 };

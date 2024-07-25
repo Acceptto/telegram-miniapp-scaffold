@@ -3,20 +3,21 @@
 		"initDataUnavailable": "Los datos de inicialización no están disponibles",
 		"initDataRawUnavailable": "Los datos brutos de inicialización no están disponibles",
 		"tokenMissing": "Error de inicialización: Falta el token",
-		"unknown": "Se produjo un error desconocido",
-		"animationLoad": "No se pudo cargar la animación. Por favor, inténtelo de nuevo."
+		"unknown": "Ocurrió un error desconocido",
+		"animationLoad": "No se pudo cargar la animación. Por favor, inténtalo de nuevo."
 	},
 	"common": {
 		"retry": "Reintentar",
 		"next": "Siguiente",
-		"getStarted": "Comenzar"
+		"getStarted": "Comenzar",
+		"and": "y"
 	},
 	"onboarding": {
 		"title": "Diapositivas de introducción, desliza para navegar",
 		"slides": [
 			{
 				"title": "Bienvenido",
-				"content": "¡Bienvenido a nuestro facilitador de reuniones grupales! Comencemos."
+				"content": "Acabas de abrir el facilitador de reuniones grupales. Comencemos."
 			},
 			{
 				"title": "Crea eventos",
@@ -30,6 +31,9 @@
 				"title": "Notificaciones instantáneas",
 				"content": "Recibe notificaciones instantáneas sobre actualizaciones y confirmaciones de eventos."
 			}
-		]
+		],
+		"termsPrefix": "Al continuar, aceptas nuestros",
+		"termsLink": "Términos y condiciones",
+		"privacyLink": "Política de privacidad"
 	}
 }

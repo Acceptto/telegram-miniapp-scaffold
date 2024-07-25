@@ -143,3 +143,10 @@ All the needed checks are done:
 
 * * Cloudflare Workers operate in a unique environment that is neither a browser nor a Node.js server environment. The code runs on the Cloudflare network, whose runtime environment resembles a web browser's Service Worker.
 Thats why to work with cryptography in Cloudflare Pages, you need to use the Web Crypto API instead of Node.js modules.
+
+## Basic Functionality included
+
+* Localization
+* Onboarding flow
+* User data caching with telegram cloud storage
+* Calendar creation and date voting for a group meetup

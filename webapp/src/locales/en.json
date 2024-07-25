@@ -9,14 +9,15 @@
 	"common": {
 		"retry": "Retry",
 		"next": "Next",
-		"getStarted": "Get Started"
+		"getStarted": "Get Started",
+		"and": "and"
 	},
 	"onboarding": {
 		"title": "Onboarding slides, swipe to navigate",
 		"slides": [
 			{
 				"title": "Welcome",
-				"content": "Welcome to our group meetup facilitator! Let's get you started."
+				"content": "You've just opened group meetup facilitator. Let's get you started."
 			},
 			{
 				"title": "Create Events",
@@ -30,6 +31,9 @@
 				"title": "Instant Notifications",
 				"content": "Get notified instantly about event updates and confirmations."
 			}
-		]
+		],
+		"termsPrefix": "By proceeding you agree to our",
+		"termsLink": "Terms and Conditions",
+		"privacyLink": "Privacy Policy"
 	}
 }

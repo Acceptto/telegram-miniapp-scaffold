@@ -66,3 +66,9 @@
 	text-align: center;
 	max-width: 280px;
 }
+
+.termsText {
+	color: var(--tg-theme-hint-color);
+	max-width: 250px;
+	text-align: center;
+}

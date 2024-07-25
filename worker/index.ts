@@ -162,7 +162,9 @@ router.post('/miniApp/dates', async (request: Request, app: App) => {
 	let jsonToSave = JSON.stringify({ dates: json.dates });
 	await db.saveCalendar(jsonToSave, ref, user.id);
 
-	let messageSender = new MessageSender(app, telegram);
+	const languageCode = user.languageCode;
+
+	let messageSender = new MessageSender(app, telegram, languageCode);
 	await messageSender.sendCalendarLink(user.telegramId, user.firstName, ref);
 
 	return new Response(JSON.stringify({ user: user }), {

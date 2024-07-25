@@ -9,27 +9,31 @@
 	"common": {
 		"retry": "Tentar novamente",
 		"next": "Próximo",
-		"getStarted": "Começar"
+		"getStarted": "Começar",
+		"and": "e"
 	},
 	"onboarding": {
 		"title": "Slides de introdução, deslize para navegar",
 		"slides": [
 			{
 				"title": "Bem-vindo",
-				"content": "Bem-vindo ao nosso facilitador de encontros em grupo! Vamos começar."
+				"content": "Você acabou de abrir o facilitador de encontros em grupo. Vamos começar."
 			},
 			{
 				"title": "Crie eventos",
 				"content": "Crie e agende eventos em grupo facilmente com apenas alguns toques."
 			},
 			{
-				"title": "Vote em datas",
+				"title": "Vote nas datas",
 				"content": "Permita que os membros do grupo votem nas melhores datas para todos."
 			},
 			{
 				"title": "Notificações instantâneas",
 				"content": "Receba notificações instantâneas sobre atualizações e confirmações de eventos."
 			}
-		]
+		],
+		"termsPrefix": "Ao prosseguir, você concorda com nossos",
+		"termsLink": "Termos e Condições",
+		"privacyLink": "Política de Privacidade"
 	}
 }
