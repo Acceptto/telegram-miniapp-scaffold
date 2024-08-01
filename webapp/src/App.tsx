@@ -30,13 +30,13 @@ export const App: React.FC = () => {
 	const viewport = useViewport();
 	const closingBehavior = useClosingBehavior();
 	const backButton = useBackButton();
-	//const swipeBehavior = useSwipeBehavior();
+	const swipeBehavior = useSwipeBehavior();
 
 	useEffect(() => {
 		if (viewport) {
 			bindViewportCSSVars(viewport);
 			viewport.expand();
-			//swipeBehavior.disableVerticalSwipe();
+			swipeBehavior.disableVerticalSwipe();
 		}
 	}, [viewport]);
 
