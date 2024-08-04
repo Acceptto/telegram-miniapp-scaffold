@@ -5,8 +5,8 @@
 	"scripts": {
 		"deploy": "wrangler deploy worker/index.ts",
 		"dev": "wrangler dev worker/index.ts --local true",
-		"dev:db:init": "wrangler d1 execute DB --file worker/sql/init.sql --local",
-		"dev:db:drop": "wrangler d1 execute DB --file worker/sql/drop.sql  --local",
+		"dev:db:init": "wrangler d1 execute D1_DATABASE --file worker/sql/init.sql --local",
+		"dev:db:drop": "wrangler d1 execute D1_DATABASE --file worker/sql/drop.sql  --local",
 		"type-check": "tsc --noEmit"
 	},
 	"dependencies": {
