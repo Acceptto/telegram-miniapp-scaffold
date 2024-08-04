@@ -61,37 +61,37 @@ class Database {
 		return await this.db
 			.prepare(
 				`INSERT
-        INTO users (createdDate, updatedDate, lastAuthTimestamp,
-          telegramId, isBot, firstName, lastName, username, languageCode,
-          isPremium, addedToAttachmentMenu, allowsWriteToPm, photoUrl
-          )
-        VALUES (DATETIME('now'), DATETIME('now'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(telegramId) DO UPDATE SET
-          updatedDate = DATETIME('now'),
-          lastAuthTimestamp = COALESCE(excluded.lastAuthTimestamp, lastAuthTimestamp),
-          isBot = COALESCE(excluded.isBot, isBot),
-          firstName = excluded.firstName,
-          lastName = excluded.lastName,
-          username = excluded.username,
-          languageCode = COALESCE(excluded.languageCode, languageCode),
-          isPremium = COALESCE(excluded.isPremium, isPremium),
-          addedToAttachmentMenu = COALESCE(excluded.addedToAttachmentMenu, addedToAttachmentMenu),
-          allowsWriteToPm = COALESCE(excluded.allowsWriteToPm, allowsWriteToPm),
-          photoUrl = COALESCE(excluded.photoUrl, photoUrl)
-          WHERE excluded.lastAuthTimestamp > users.lastAuthTimestamp`
+      INTO users (createdDate, updatedDate, lastAuthTimestamp,
+        telegramId, isBot, firstName, lastName, username, languageCode,
+        isPremium, addedToAttachmentMenu, allowsWriteToPm, photoUrl
+        )
+      VALUES (DATETIME('now'), DATETIME('now'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(telegramId) DO UPDATE SET
+        updatedDate = DATETIME('now'),
+        lastAuthTimestamp = COALESCE(excluded.lastAuthTimestamp, lastAuthTimestamp),
+        isBot = COALESCE(excluded.isBot, isBot),
+        firstName = excluded.firstName,
+        lastName = excluded.lastName,
+        username = excluded.username,
+        languageCode = COALESCE(excluded.languageCode, languageCode),
+        isPremium = COALESCE(excluded.isPremium, isPremium),
+        addedToAttachmentMenu = COALESCE(excluded.addedToAttachmentMenu, addedToAttachmentMenu),
+        allowsWriteToPm = COALESCE(excluded.allowsWriteToPm, allowsWriteToPm),
+        photoUrl = COALESCE(excluded.photoUrl, photoUrl)
+        WHERE excluded.lastAuthTimestamp > users.lastAuthTimestamp`
 			)
 			.bind(
 				authTimestamp,
-				user.telegramId,
-				Number(user.isBot),
-				user.firstName || null,
-				user.lastName || null,
-				user.username || null,
-				user.languageCode || null,
-				Number(user.isPremium),
-				Number(user.addedToAttachmentMenu),
-				Number(user.allowsWriteToPm),
-				user.photoUrl || null
+				user.telegramId ?? null,
+				user.isBot === undefined ? null : Number(user.isBot),
+				user.firstName ?? null,
+				user.lastName ?? null,
+				user.username ?? null,
+				user.languageCode ?? null,
+				user.isPremium === undefined ? null : Number(user.isPremium),
+				user.addedToAttachmentMenu === undefined ? null : Number(user.addedToAttachmentMenu),
+				user.allowsWriteToPm === undefined ? null : Number(user.allowsWriteToPm),
+				user.photoUrl ?? null
 			)
 			.run();
 	}
