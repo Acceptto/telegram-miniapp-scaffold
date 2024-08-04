@@ -57,6 +57,10 @@ class Database {
 		return result as User | null;
 	}
 
+	private sanitizeInput(value: any): any {
+		return value === undefined ? null : value;
+	}
+
 	async saveUser(user: Partial<User>, authTimestamp: number): Promise<D1Result> {
 		return await this.db
 			.prepare(
@@ -82,16 +86,16 @@ class Database {
 			)
 			.bind(
 				authTimestamp,
-				user.telegramId ?? null,
-				user.isBot === undefined ? null : Number(user.isBot),
-				user.firstName ?? null,
-				user.lastName ?? null,
-				user.username ?? null,
-				user.languageCode ?? null,
-				user.isPremium === undefined ? null : Number(user.isPremium),
-				user.addedToAttachmentMenu === undefined ? null : Number(user.addedToAttachmentMenu),
-				user.allowsWriteToPm === undefined ? null : Number(user.allowsWriteToPm),
-				user.photoUrl ?? null
+				user.telegramId,
+				this.sanitizeInput(Number(user.isBot)),
+				this.sanitizeInput(user.firstName),
+				this.sanitizeInput(user.lastName),
+				this.sanitizeInput(user.username),
+				this.sanitizeInput(user.languageCode),
+				this.sanitizeInput(Number(user.isPremium)),
+				this.sanitizeInput(Number(user.addedToAttachmentMenu)),
+				this.sanitizeInput(Number(user.allowsWriteToPm)),
+				this.sanitizeInput(user.photoUrl)
 			)
 			.run();
 	}

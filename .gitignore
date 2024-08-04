@@ -6,3 +6,5 @@
 .dev.vars
 .wrangler
 docs/knowledge.txt
+docs/knowledgeUI.txt
+docs/knowledgeSDK.txt
