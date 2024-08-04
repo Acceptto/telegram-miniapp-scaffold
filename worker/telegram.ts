@@ -1,4 +1,4 @@
-import { hmacSha256, hex } from './cryptoUtils';
+import { hmacSha256, hex } from '@/cryptoUtils';
 
 const TELEGRAM_API_BASE_URL = 'https://api.telegram.org/bot';
 
@@ -21,12 +21,16 @@ class TelegramAPI {
 
 		let dataCheckString = '';
 
-		for (const [key, value] of urlParams.entries()) {
+		// Use forEach instead of entries()
+		urlParams.forEach((value, key) => {
 			dataCheckString += `${key}=${value}\n`;
-		}
+		});
 
 		dataCheckString = dataCheckString.slice(0, -1);
-		let data: any = Object.fromEntries(urlParams);
+
+		// Use Object.fromEntries with a type assertion
+		let data: any = Object.fromEntries(urlParams as any);
+
 		data.user = JSON.parse(data.user || 'null');
 		data.receiver = JSON.parse(data.receiver || 'null');
 		data.chat = JSON.parse(data.chat || 'null');

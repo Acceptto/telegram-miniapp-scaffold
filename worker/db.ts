@@ -1,7 +1,10 @@
-class Database {
-	private db: any;
+import { D1Database, D1Result } from '@cloudflare/workers-types';
+import { Setting, Message, User, Token, Calendar } from '@/types/dbTypes';
 
-	constructor(databaseConnection: any) {
+class Database {
+	private db: D1Database;
+
+	constructor(databaseConnection: D1Database) {
 		this.db = databaseConnection;
 	}
 
@@ -13,14 +16,14 @@ class Database {
 	}
 
 	async getLatestUpdateId(): Promise<number> {
-		let result = await this.db
+		const result = await this.db
 			.prepare('SELECT updateId FROM messages ORDER BY updateId DESC LIMIT 1')
 			.first('updateId');
 
-		return Number(result);
+		return Number(result ?? 0);
 	}
 
-	async setSetting(settingName: string, settingValue: string): Promise<any> {
+	async setSetting(settingName: string, settingValue: string): Promise<D1Result> {
 		return await this.db
 			.prepare(
 				`INSERT
@@ -35,7 +38,7 @@ class Database {
 			.run();
 	}
 
-	async addMessage(message: string, updateId: number): Promise<any> {
+	async addMessage(message: string, updateId: number): Promise<D1Result> {
 		return await this.db
 			.prepare(
 				`INSERT
@@ -46,14 +49,15 @@ class Database {
 			.run();
 	}
 
-	async getUser(telegramId: number): Promise<any> {
-		return await this.db
+	async getUser(telegramId: number): Promise<User | null> {
+		const result = await this.db
 			.prepare('SELECT * FROM users WHERE telegramId = ?')
 			.bind(telegramId)
 			.first();
+		return result as User | null;
 	}
 
-	async saveUser(user: any, authTimestamp: number): Promise<any> {
+	async saveUser(user: Partial<User>, authTimestamp: number): Promise<D1Result> {
 		return await this.db
 			.prepare(
 				`INSERT
@@ -78,22 +82,23 @@ class Database {
 			)
 			.bind(
 				authTimestamp,
-				user.id,
-				+user.is_bot,
-				user.first_name || null,
-				user.last_name || null,
+				user.telegramId,
+				Number(user.isBot),
+				user.firstName || null,
+				user.lastName || null,
 				user.username || null,
-				user.language_code || null,
-				+user.is_premium,
-				+user.added_to_attachment_menu,
-				+user.allows_write_to_pm,
-				user.photo_url || null
+				user.languageCode || null,
+				Number(user.isPremium),
+				Number(user.addedToAttachmentMenu),
+				Number(user.allowsWriteToPm),
+				user.photoUrl || null
 			)
 			.run();
 	}
 
-	async saveToken(telegramId: number, tokenHash: Uint8Array): Promise<any> {
+	async saveToken(telegramId: number, tokenHash: Uint8Array): Promise<D1Result> {
 		const user = await this.getUser(telegramId);
+		if (!user) throw new Error('User not found');
 		return await this.db
 			.prepare(
 				`INSERT
@@ -104,7 +109,7 @@ class Database {
 			.run();
 	}
 
-	async getUserByTokenHash(tokenHash: Uint8Array): Promise<any> {
+	async getUserByTokenHash(tokenHash: Uint8Array): Promise<User | null> {
 		return await this.db
 			.prepare(
 				`SELECT users.* FROM tokens
@@ -115,7 +120,7 @@ class Database {
 			.first();
 	}
 
-	async saveCalendar(calendarJson: string, calendarRef: string, userId: number): Promise<any> {
+	async saveCalendar(calendarJson: string, calendarRef: string, userId: number): Promise<D1Result> {
 		return await this.db
 			.prepare(
 				`INSERT

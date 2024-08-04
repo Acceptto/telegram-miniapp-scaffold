@@ -73,17 +73,36 @@ const useOnboardingStatus = () => {
 // Components
 const ErrorMessage: React.FC<{ message: string; onRetry: () => void }> = ({ message, onRetry }) => {
 	const { t } = useLanguage();
+
 	return (
-		<div style={{ padding: '20px', textAlign: 'center' }}>
-			<Text color="red" size={16}>
-				{t(message)}
-			</Text>
-			<Button onClick={onRetry}>{t('common.retry')}</Button>
+		<div
+			style={{
+				display: 'flex',
+				flexDirection: 'column',
+				alignItems: 'center',
+				justifyContent: 'center',
+				height: '100vh', // Full viewport height to center vertically
+				padding: '20px',
+				textAlign: 'center', // Center text
+			}}
+		>
+			<Text style={{ marginBottom: '20px' }}>{t('common.loadFailed')}</Text>
+			<Button
+				onClick={onRetry}
+				style={{
+					marginTop: '20px',
+					padding: '10px 20px',
+					cursor: 'pointer',
+				}}
+			>
+				{t('common.retry')}
+			</Button>
 		</div>
 	);
 };
 
 const InitializerPage: React.FC = () => {
+	// Unconditionally call hooks
 	const { isLoading: isInitLoading, isError, error, data, refetch } = useInitMiniApp();
 	const {
 		isOnboardingComplete,
@@ -91,28 +110,37 @@ const InitializerPage: React.FC = () => {
 		setOnboardingComplete,
 	} = useOnboardingStatus();
 
+	// Compute error message unconditionally
 	const errorMessage = useMemo(() => {
 		if (isError) return error?.message || ERROR_MESSAGES.UNKNOWN;
 		if (!data?.token) return ERROR_MESSAGES.TOKEN_MISSING;
 		return null;
 	}, [isError, error, data]);
 
-	if (isInitLoading || isStatusLoading) return <LoadingSpinner />;
-	if (errorMessage) return <ErrorMessage message={errorMessage} onRetry={refetch} />;
+	// Extract languageCode unconditionally
+	const languageCode = useMemo(() => {
+		if (data?.user.languageCode) {
+			return getSupportedLanguageCode(data.user.languageCode);
+		}
+		return 'en';
+	}, [data]);
 
-	const { token, startParam, startPage, user } = data!;
-	const languageCode = getSupportedLanguageCode(user.languageCode);
-
-	let content;
-	if (isOnboardingComplete) {
-		content = <Home token={token} />;
-	} else if (startPage === 'calendar' && startParam) {
-		content = <Calendar token={token} apiRef={startParam} />;
-	} else {
-		content = <Onboarding onComplete={() => setOnboardingComplete(true)} />;
-	}
-
-	return <LanguageProvider languageCode={languageCode}>{content}</LanguageProvider>;
+	// Always render LanguageProvider and its children
+	return (
+		<LanguageProvider languageCode={languageCode}>
+			{isInitLoading || isStatusLoading ? (
+				<LoadingSpinner />
+			) : errorMessage ? (
+				<ErrorMessage message={errorMessage} onRetry={refetch} />
+			) : isOnboardingComplete ? (
+				<Home token={data!.token} />
+			) : data?.startPage === 'calendar' && data.startParam ? (
+				<Calendar token={data.token} apiRef={data.startParam} />
+			) : (
+				<Onboarding onComplete={() => setOnboardingComplete(true)} />
+			)}
+		</LanguageProvider>
+	);
 };
 
 export default InitializerPage;

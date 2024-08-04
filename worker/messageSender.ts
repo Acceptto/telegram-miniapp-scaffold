@@ -1,30 +1,16 @@
-import { getGreetingMessage } from './locales/greetingMessages';
-import { getCalendarLinkMessage, getCalendarShareMessage } from './locales/calendarMessages';
-
-interface Telegram {
-	sendMessage: (
-		chatId: number | string,
-		text: string,
-		parse_mode?: string,
-		reply_to_message_id?: number
-	) => Promise<any>;
-}
-
-interface App {
-	telegram: Telegram;
-	botName: string;
-}
-
-type LanguageTag = string; // e.g., 'en', 'es', 'fr', etc.
+import { getGreetingMessage } from '@/locales/greetingMessages';
+import { getCalendarLinkMessage, getCalendarShareMessage } from '@/locales/calendarMessages';
+import { Telegram } from '@/telegram';
+import { App, LanguageTag } from '@/types/types';
 
 class MessageSender {
 	private botName: string;
 	private telegram: Telegram;
 	private language: LanguageTag;
 
-	constructor(app: App, telegram: Telegram, language: LanguageTag = 'en') {
-		this.botName = app.botName;
-		this.telegram = telegram;
+	constructor(app: App, language: LanguageTag = 'en') {
+		this.botName = app.botName ?? '';
+		this.telegram = app.telegram;
 		this.language = language;
 	}
 
@@ -47,7 +33,7 @@ class MessageSender {
 
 	async sendCalendarLink(
 		chatId: number | string,
-		userName: string,
+		userName: string | null,
 		calendarRef: string
 	): Promise<any> {
 		const linkMessage = getCalendarLinkMessage(this.language);

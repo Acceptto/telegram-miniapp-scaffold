@@ -1,5 +1,5 @@
 import { Markdown, md } from '@vlad-yakovlev/telegram-md';
-type LanguageTag = string; // e.g., 'en', 'es', 'fr', etc.
+import { LanguageTag } from '@/types/types';
 
 export function getCalendarLinkMessage(language: LanguageTag): string {
 	let message: Markdown;
@@ -45,7 +45,7 @@ or just copy the link from it.
 
 export function getCalendarShareMessage(
 	language: LanguageTag,
-	userName: string,
+	userName: string | null,
 	botName: string,
 	calendarRef: string
 ): string {

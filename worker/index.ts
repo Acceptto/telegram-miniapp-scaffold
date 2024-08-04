@@ -1,32 +1,18 @@
 import { Router } from 'itty-router';
-import { Telegram } from './telegram';
-import { Database } from './db';
-import { processMessage } from './messageProcessor';
-import { MessageSender } from './messageSender';
-import { generateSecret, sha256 } from './cryptoUtils';
-
-interface Env {
-	TELEGRAM_BOT_TOKEN: string;
-	TELEGRAM_USE_TEST_API: boolean;
-	DB: any;
-	FRONTEND_URL: string;
-	INIT_SECRET: string;
-}
-
-interface App {
-	telegram: Telegram;
-	db: Database;
-	corsHeaders: Record<string, string>;
-	isLocalhost: boolean;
-	botName: string | null;
-}
+import { Telegram } from '@/telegram';
+import { Database } from '@/db';
+import { processMessage } from '@/messageProcessor';
+import { MessageSender } from '@/messageSender';
+import { generateSecret, sha256 } from '@/cryptoUtils';
+import { App, Env, TelegramUpdate } from '@/types/types';
+import { AppError, handleError } from './errorHandler';
 
 // Create a new router
 const router = Router();
 
 const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promise<Response> => {
 	let telegram = new Telegram(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_USE_TEST_API);
-	let db = new Database(env.DB);
+	let db = new Database(env.D1_DATABASE);
 	let corsHeaders = {
 		'Access-Control-Allow-Origin': env.FRONTEND_URL,
 		'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -37,14 +23,11 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 	let botName = await db.getSetting('bot_name');
 	if (!botName) {
 		let me = await telegram.getMe();
-		botName = me.result.username;
+		botName = me.result?.username ?? null;
 		if (botName) {
-			// Check if username is not null or undefined
 			await db.setSetting('bot_name', botName);
 		} else {
-			// Handle the case where we couldn't get a valid botName
 			console.error('Failed to get bot username');
-			botName = null; // or set a default value
 		}
 	}
 
@@ -61,28 +44,29 @@ router.get('/', () => {
 });
 
 router.post('/miniApp/init', async (request: Request, app: App) => {
-	const { telegram, db } = app;
-	let json = await request.json();
-	let initData = json.initData;
+	try {
+		const { telegram, db } = app;
+		let json = (await request.json()) as any;
+		let initData = json.initData;
 
-	let { expectedHash, calculatedHash, data } = await telegram.calculateHashes(initData);
+		let { expectedHash, calculatedHash, data } = await telegram.calculateHashes(initData);
 
-	if (expectedHash !== calculatedHash) {
-		return new Response('Unauthorized', { status: 401, headers: { ...app.corsHeaders } });
-	}
+		if (expectedHash !== calculatedHash) {
+			throw new AppError(401, 'Unauthorized');
+		}
 
-	const currentTime = Math.floor(Date.now() / 1000);
-	let stalenessSeconds = currentTime - data.auth_date;
-	if (stalenessSeconds > 600) {
-		return new Response('Stale data, please restart the app', {
-			status: 400,
-			headers: { ...app.corsHeaders },
-		});
-	}
+		const currentTime = Math.floor(Date.now() / 1000);
+		let stalenessSeconds = currentTime - data.auth_date;
+		if (stalenessSeconds > 600) {
+			throw new AppError(400, 'Stale data, please restart the app');
+		}
 
-	await db.saveUser(data.user, data.auth_date);
-	const token = generateSecret(16);
-	if (token) {
+		await db.saveUser(data.user, data.auth_date);
+		const token = generateSecret(16);
+		if (!token) {
+			throw new AppError(500, 'Failed to generate token');
+		}
+
 		const tokenHash = await sha256(token);
 		await db.saveToken(data.user.id, tokenHash);
 
@@ -95,148 +79,169 @@ router.post('/miniApp/init', async (request: Request, app: App) => {
 			}),
 			{ status: 200, headers: { ...app.corsHeaders } }
 		);
-	} else {
-		return new Response('Failed to generate token', {
-			status: 500,
-			headers: { ...app.corsHeaders },
-		});
+	} catch (error: unknown) {
+		return handleError(error);
 	}
 });
 
 router.get('/miniApp/me', async (request: Request, app: App) => {
-	const { db } = app;
+	try {
+		const { db } = app;
 
-	let suppliedToken = request.headers.get('Authorization')?.replace('Bearer ', '');
-	const tokenHash = await sha256(suppliedToken || '');
-	let user = await db.getUserByTokenHash(tokenHash);
+		let suppliedToken = request.headers.get('Authorization')?.replace('Bearer ', '');
+		const tokenHash = await sha256(suppliedToken || '');
+		let user = await db.getUserByTokenHash(tokenHash);
 
-	if (user === null) {
-		return new Response('Unauthorized', { status: 401 });
+		if (user === null) {
+			throw new AppError(401, 'Unauthorized');
+		}
+
+		return new Response(JSON.stringify({ user: user }), {
+			status: 200,
+			headers: { ...app.corsHeaders },
+		});
+	} catch (error: unknown) {
+		return handleError(error);
 	}
-
-	return new Response(JSON.stringify({ user: user }), {
-		status: 200,
-		headers: { ...app.corsHeaders },
-	});
 });
 
 router.get('/miniApp/calendar/:ref', async (request: Request, app: App) => {
-	const { db } = app;
+	try {
+		const { db } = app;
 
-	let ref = (request as any).params.ref;
-	let calendar = await db.getCalendarByRef(ref);
+		let ref = (request as any).params.ref;
+		let calendar = await db.getCalendarByRef(ref);
 
-	if (calendar === null) {
-		return new Response('Not found', { status: 404 });
+		if (calendar === null) {
+			throw new AppError(404, 'Not found');
+		}
+
+		return new Response(JSON.stringify({ calendar: JSON.parse(calendar) }), {
+			status: 200,
+			headers: { ...app.corsHeaders },
+		});
+	} catch (error: unknown) {
+		return handleError(error);
 	}
-
-	return new Response(JSON.stringify({ calendar: JSON.parse(calendar) }), {
-		status: 200,
-		headers: { ...app.corsHeaders },
-	});
 });
 
 router.post('/miniApp/dates', async (request: Request, app: App) => {
-	const { db, telegram, botName } = app;
+	try {
+		const { db, telegram, botName } = app;
 
-	let suppliedToken = request.headers.get('Authorization')?.replace('Bearer ', '');
-	const tokenHash = await sha256(suppliedToken || '');
-	let user = await db.getUserByTokenHash(tokenHash);
+		let suppliedToken = request.headers.get('Authorization')?.replace('Bearer ', '');
+		const tokenHash = await sha256(suppliedToken || '');
+		let user = await db.getUserByTokenHash(tokenHash);
 
-	if (user === null) {
-		return new Response('Unauthorized', { status: 401 });
-	}
-
-	let ref = generateSecret(8);
-	let json = await request.json();
-	let dates = json.dates as string[];
-	if (dates.length > 100) {
-		return new Response('Too many dates', { status: 400 });
-	}
-	for (const date of dates) {
-		if (!date.match(/^\d{4}-\d{2}-\d{2}$/)) {
-			return new Response('Invalid date', { status: 400 });
+		if (user === null) {
+			throw new AppError(401, 'Unauthorized');
 		}
+
+		let ref = generateSecret(8);
+		let json = (await request.json()) as any;
+		let dates = json.dates as string[];
+		if (dates.length > 100) {
+			throw new AppError(400, 'Too many dates');
+		}
+		for (const date of dates) {
+			if (!date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+				throw new AppError(400, 'Invalid date');
+			}
+		}
+
+		let jsonToSave = JSON.stringify({ dates: json.dates });
+		await db.saveCalendar(jsonToSave, ref, user.id);
+
+		const languageCode = user.languageCode;
+
+		let messageSender = new MessageSender(app, languageCode);
+		await messageSender.sendCalendarLink(user.telegramId, user.firstName, ref);
+
+		return new Response(JSON.stringify({ user: user }), {
+			status: 200,
+			headers: { ...app.corsHeaders },
+		});
+	} catch (error: unknown) {
+		return handleError(error);
 	}
-
-	let jsonToSave = JSON.stringify({ dates: json.dates });
-	await db.saveCalendar(jsonToSave, ref, user.id);
-
-	const languageCode = user.languageCode;
-
-	let messageSender = new MessageSender(app, telegram, languageCode);
-	await messageSender.sendCalendarLink(user.telegramId, user.firstName, ref);
-
-	return new Response(JSON.stringify({ user: user }), {
-		status: 200,
-		headers: { ...app.corsHeaders },
-	});
 });
 
 router.post('/telegramMessage', async (request: Request, app: App) => {
-	const { db } = app;
-	const telegramProvidedToken = request.headers.get('X-Telegram-Bot-Api-Secret-Token');
-	const savedToken = await db.getSetting('telegram_security_code');
+	try {
+		const { db } = app;
+		const telegramProvidedToken = request.headers.get('X-Telegram-Bot-Api-Secret-Token');
+		const savedToken = await db.getSetting('telegram_security_code');
 
-	if (telegramProvidedToken !== savedToken) {
-		return new Response('Unauthorized', { status: 401 });
+		if (telegramProvidedToken !== savedToken) {
+			throw new AppError(401, 'Unauthorized');
+		}
+
+		let messageJson = await request.json();
+		await processMessage(messageJson as TelegramUpdate, app);
+
+		return new Response('Success', { status: 200 });
+	} catch (error: unknown) {
+		return handleError(error);
 	}
-
-	let messageJson = await request.json();
-	await processMessage(messageJson, app);
-
-	return new Response('Success', { status: 200 });
 });
 
 router.get('/updateTelegramMessages', async (request: Request, app: App, env: Env) => {
-	if (!app.isLocalhost) {
-		return new Response('This request is only supposed to be used locally', { status: 403 });
-	}
+	try {
+		if (!app.isLocalhost) {
+			throw new AppError(403, 'This request is only supposed to be used locally');
+		}
 
-	const { telegram, db } = app;
-	let lastUpdateId = await db.getLatestUpdateId();
-	let updates = await telegram.getUpdates(lastUpdateId);
-	let results = [];
-	for (const update of updates.result) {
-		let result = await processMessage(update, app);
-		results.push(result);
-	}
+		const { telegram, db } = app;
+		let lastUpdateId = await db.getLatestUpdateId();
+		let updates = await telegram.getUpdates(lastUpdateId);
+		let results = [];
+		for (const update of updates.result) {
+			let result = await processMessage(update, app);
+			results.push(result);
+		}
 
-	return new Response(
-		`Success!
-  Last update id:
-  ${lastUpdateId}\n\n
-  Updates:
-  ${JSON.stringify(updates, null, 2)}\n\n
-  Results:
-  ${JSON.stringify(results, null, 2)}`,
-		{ status: 200 }
-	);
+		return new Response(
+			`Success!
+      Last update id:
+      ${lastUpdateId}\n\n
+      Updates:
+      ${JSON.stringify(updates, null, 2)}\n\n
+      Results:
+      ${JSON.stringify(results, null, 2)}`,
+			{ status: 200 }
+		);
+	} catch (error: unknown) {
+		return handleError(error);
+	}
 });
 
 router.post('/init', async (request: Request, app: App, env: Env) => {
-	if (request.headers.get('Authorization') !== `Bearer ${env.INIT_SECRET}`) {
-		return new Response('Unauthorized', { status: 401 });
+	try {
+		if (request.headers.get('Authorization') !== `Bearer ${env.INIT_SECRET}`) {
+			throw new AppError(401, 'Unauthorized');
+		}
+
+		const { telegram, db, botName } = app;
+
+		let token = await db.getSetting('telegram_security_code');
+
+		if (token === null) {
+			token = crypto.getRandomValues(new Uint8Array(16)).join('');
+			await db.setSetting('telegram_security_code', token);
+		}
+
+		let json = (await request.json()) as any;
+		let externalUrl = json.externalUrl;
+
+		let response = await telegram.setWebhook(`${externalUrl}/telegramMessage`, token);
+
+		return new Response(
+			`Success! Bot Name: https://t.me/${botName}. Webhook status:  ${JSON.stringify(response)}`,
+			{ status: 200 }
+		);
+	} catch (error: unknown) {
+		return handleError(error);
 	}
-
-	const { telegram, db, botName } = app;
-
-	let token = await db.getSetting('telegram_security_code');
-
-	if (token === null) {
-		token = crypto.getRandomValues(new Uint8Array(16)).join('');
-		await db.setSetting('telegram_security_code', token);
-	}
-
-	let json = await request.json();
-	let externalUrl = json.externalUrl;
-
-	let response = await telegram.setWebhook(`${externalUrl}/telegramMessage`, token);
-
-	return new Response(
-		`Success! Bot Name: https://t.me/${botName}. Webhook status:  ${JSON.stringify(response)}`,
-		{ status: 200 }
-	);
 });
 
 router.options(

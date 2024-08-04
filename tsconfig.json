@@ -6,10 +6,15 @@
 		"types": ["@cloudflare/workers-types"],
 		"moduleResolution": "node",
 		"strict": true,
+		"strictNullChecks": true,
 		"noEmit": true,
 		"esModuleInterop": true,
 		"skipLibCheck": true,
-		"forceConsistentCasingInFileNames": true
+		"forceConsistentCasingInFileNames": true,
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["worker/*"]
+		}
 	},
 	"include": ["worker/**/*.ts"],
 	"exclude": ["node_modules", "dist", "webapp"]

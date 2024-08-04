@@ -5,3 +5,4 @@
 *.log
 .dev.vars
 .wrangler
+docs/knowledge.txt

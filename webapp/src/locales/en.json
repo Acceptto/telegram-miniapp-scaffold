@@ -10,7 +10,8 @@
 		"retry": "Retry",
 		"next": "Next",
 		"getStarted": "Get Started",
-		"and": "and"
+		"and": "and",
+		"loadFailed": "Oops, something went wrong."
 	},
 	"onboarding": {
 		"title": "Onboarding slides, swipe to navigate",
