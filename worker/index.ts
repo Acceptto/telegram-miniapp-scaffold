@@ -57,6 +57,7 @@ router.post('/miniApp/init', async (request: Request, app: App) => {
 		const { telegram, db }: { telegram: Telegram; db: Database } = app;
 		let json = (await request.json()) as any;
 		let initData = json.initData as any;
+		console.log('Data on enter: ' + initData);
 
 		let { expectedHash, calculatedHash, data }: CalculateHashesResult =
 			await telegram.calculateHashes(initData);

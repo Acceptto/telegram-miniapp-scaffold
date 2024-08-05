@@ -53,6 +53,8 @@ export const initMiniApp = async (
 	if (!initData || !initDataRaw) {
 		throw new Error('Invalid initData or initDataRaw');
 	}
+	console.log('initFront: ' + initData);
+	console.log('initFrontRaw: ' + initDataRaw);
 	const transformedData = transformInitData(initData, initDataRaw);
 	return apiFetch<InitMiniAppResponse>('/miniApp/init', {
 		method: 'POST',
