@@ -18,9 +18,15 @@ class Database {
 		return value;
 	}
 
-	private sanitizeObject(obj: Record<string, any>): Record<string, any> {
+	private sanitizeObject(
+		obj: Record<string, any>,
+		requiredFields: string[] = []
+	): Record<string, any> {
 		const sanitized: Record<string, any> = {};
 		for (const [key, value] of Object.entries(obj)) {
+			if (requiredFields.includes(key) && (value === undefined || value === null)) {
+				throw new Error(`Required field '${key}' cannot be null or undefined`);
+			}
 			sanitized[key] = this.sanitizeValue(value);
 		}
 		return sanitized;
@@ -76,6 +82,9 @@ class Database {
 	}
 
 	async getUser(telegramId: number): Promise<User | null> {
+		if (!telegramId) {
+			throw new Error('telegramId is required to get a user');
+		}
 		const result = await this.db
 			.prepare('SELECT * FROM users WHERE telegramId = ?')
 			.bind(telegramId)
@@ -84,19 +93,26 @@ class Database {
 	}
 
 	async saveUser(user: Partial<User>, authTimestamp: number): Promise<D1Result> {
-		const sanitizedUser = this.sanitizeObject({
-			lastAuthTimestamp: authTimestamp,
-			telegramId: user.telegramId,
-			isBot: user.isBot,
-			firstName: user.firstName,
-			lastName: user.lastName,
-			username: user.username,
-			languageCode: user.languageCode,
-			isPremium: user.isPremium,
-			addedToAttachmentMenu: user.addedToAttachmentMenu,
-			allowsWriteToPm: user.allowsWriteToPm,
-			photoUrl: user.photoUrl,
-		});
+		if (!user.telegramId) {
+			throw new Error('telegramId is required to save a user');
+		}
+
+		const sanitizedUser = this.sanitizeObject(
+			{
+				lastAuthTimestamp: authTimestamp,
+				telegramId: user.telegramId,
+				isBot: user.isBot,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				username: user.username,
+				languageCode: user.languageCode,
+				isPremium: user.isPremium,
+				addedToAttachmentMenu: user.addedToAttachmentMenu,
+				allowsWriteToPm: user.allowsWriteToPm,
+				photoUrl: user.photoUrl,
+			},
+			['telegramId', 'lastAuthTimestamp', 'firstName']
+		); // Specify required fields
 
 		return await this.db
 			.prepare(
