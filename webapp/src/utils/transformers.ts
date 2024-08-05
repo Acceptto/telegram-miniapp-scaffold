@@ -48,3 +48,18 @@ export function transformChat(chat: Chat): Record<string, string | number> {
 		...(chat.photoUrl && { photoUrl: chat.photoUrl }),
 	};
 }
+
+export function transformInitDataNew(json: any): string {
+	const { initData } = json;
+
+	const params = { ...initData };
+
+	// Stringify specific objects if they exist
+	['user', 'chat', 'receiver'].forEach(key => {
+		if (params[key]) {
+			params[key] = JSON.stringify(params[key]);
+		}
+	});
+
+	return new URLSearchParams(params).toString();
+}

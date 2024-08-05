@@ -1,5 +1,5 @@
 import { type InitData } from '@telegram-apps/sdk-react';
-import { transformInitData } from '@/utils/transformers';
+import { transformInitData, transformInitDataNew } from '@/utils/transformers';
 import { apiFetch } from '@/utils/genericApiFetch';
 
 enum StartPage {
@@ -54,7 +54,8 @@ export const initMiniApp = async (
 		throw new Error('Invalid initData or initDataRaw');
 	}
 	console.log('initFront: ' + JSON.stringify(initData));
-	const transformedData = transformInitData(initData, initDataRaw);
+	const transformedData = transformInitDataNew(initData);
+	console.log('transformed: ' + JSON.stringify(transformedData));
 	return apiFetch<InitMiniAppResponse>('/miniApp/init', {
 		method: 'POST',
 		body: JSON.stringify(transformedData),
