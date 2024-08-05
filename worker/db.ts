@@ -103,15 +103,15 @@ class Database {
 			{
 				lastAuthTimestamp: authTimestamp,
 				telegramId: user.id,
-				isBot: user.is_bot,
-				firstName: user.first_name,
-				lastName: user.last_name,
+				isBot: user.isBot,
+				firstName: user.firstName,
+				lastName: user.lastName,
 				username: user.username,
-				languageCode: user.language_code,
-				isPremium: user.is_premium,
-				addedToAttachmentMenu: user.added_to_attachment_menu,
-				allowsWriteToPm: user.allows_write_to_pm,
-				photoUrl: user.photo_url,
+				languageCode: user.languageCode,
+				isPremium: user.isPremium,
+				addedToAttachmentMenu: user.addedToAttachmentMenu,
+				allowsWriteToPm: user.allowsWriteToPm,
+				photoUrl: user.photoUrl,
 			},
 			['telegramId', 'lastAuthTimestamp', 'firstName']
 		); // Specify required fields

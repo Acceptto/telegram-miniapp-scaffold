@@ -1,5 +1,6 @@
 import { Database } from '@/db';
 import { Telegram } from '@/telegram';
+import type * as dbTypes from '@/types/dbTypes';
 export * from '@/types/dbTypes';
 
 export interface App {
@@ -27,6 +28,19 @@ export interface Env {
 	INIT_SECRET: string;
 }
 
+export interface TelegramUser {
+	id: number;
+	isBot: boolean;
+	firstName: string;
+	lastName?: string;
+	username?: string;
+	languageCode?: string;
+	isPremium?: boolean;
+	addedToAttachmentMenu?: boolean;
+	allowsWriteToPm?: boolean;
+	photoUrl?: string | null;
+}
+
 export interface TelegramMessage {
 	chat: {
 		id: number;
@@ -43,7 +57,7 @@ export interface TelegramUpdate {
 	update_id: number;
 }
 
-export interface TelegramUser {
+export interface getMe {
 	id: number;
 	is_bot: boolean;
 	first_name: string;
@@ -52,8 +66,42 @@ export interface TelegramUser {
 	language_code?: string;
 	is_premium?: boolean;
 	added_to_attachment_menu?: boolean;
-	allows_write_to_pm?: boolean;
-	photo_url?: string;
+	can_join_groups?: boolean;
+	can_read_all_group_messages?: boolean;
+	supports_inline_queries?: boolean;
+	can_connect_to_business?: boolean;
+	has_main_web_app?: boolean;
+}
+
+export interface Chat {
+	id: number;
+	photoUrl?: string;
+	type?: 'group' | 'supergroup' | 'channel' | string;
+	title?: string;
+	username?: string;
+}
+
+export interface CalculateHashesResult {
+	expectedHash: string;
+	calculatedHash: string;
+	data: {
+		authDate: number;
+		chatInstance?: number;
+		chatType?: 'sender' | 'private' | 'group' | 'supergroup' | 'channel' | string;
+		receiver?: TelegramUser;
+		chat?: Chat;
+		startParam?: string | null;
+		canSendAfter?: number;
+		queryId?: string;
+		user?: TelegramUser;
+	};
+}
+
+export interface InitResponse {
+	token: string;
+	startParam?: string | null;
+	startPage: 'calendar' | 'home';
+	user: dbTypes.User | null;
 }
 
 export type LanguageTag = string | null;

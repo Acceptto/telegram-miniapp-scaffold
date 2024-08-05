@@ -4,25 +4,34 @@ import { Database } from '@/db';
 import { processMessage } from '@/messageProcessor';
 import { MessageSender } from '@/messageSender';
 import { generateSecret, sha256 } from '@/cryptoUtils';
-import { App, Env, TelegramUpdate } from '@/types/types';
+import {
+	App,
+	Env,
+	TelegramUpdate,
+	User,
+	getMe,
+	InitResponse,
+	CalculateHashesResult,
+} from '@/types/types';
 import { AppError, handleError } from './errorHandler';
 
 // Create a new router
-const router = Router();
+const router: Router = Router();
 
 const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promise<Response> => {
-	let telegram = new Telegram(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_USE_TEST_API);
-	let db = new Database(env.D1_DATABASE);
-	let corsHeaders = {
+	let telegram: Telegram = new Telegram(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_USE_TEST_API);
+	let db: Database = new Database(env.D1_DATABASE);
+	let corsHeaders: Record<string, string> = {
 		'Access-Control-Allow-Origin': env.FRONTEND_URL,
 		'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 		'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 		'Access-Control-Max-Age': '86400',
 	};
-	let isLocalhost = request.headers.get('Host')?.match(/^(localhost|127\.0\.0\.1)/) !== null;
-	let botName = await db.getSetting('bot_name');
+	let isLocalhost: boolean =
+		request.headers.get('Host')?.match(/^(localhost|127\.0\.0\.1)/) !== null;
+	let botName: string | null = await db.getSetting('bot_name');
 	if (!botName) {
-		let me = await telegram.getMe();
+		let me: getMe | null = await telegram.getMe();
 		botName = me.result?.username ?? null;
 		if (botName) {
 			await db.setSetting('bot_name', botName);
@@ -45,48 +54,45 @@ router.get('/', () => {
 
 router.post('/miniApp/init', async (request: Request, app: App) => {
 	try {
-		const { telegram, db } = app;
+		const { telegram, db }: { telegram: Telegram; db: Database } = app;
 		let json = (await request.json()) as any;
-		let initData = json.initData;
+		let initData = json.initData as any;
 
-		console.log('Received initData:', initData);
-
-		let { expectedHash, calculatedHash, data } = await telegram.calculateHashes(initData);
-
-		console.log('Calculated data:', JSON.stringify(data, null, 2));
+		let { expectedHash, calculatedHash, data }: CalculateHashesResult =
+			await telegram.calculateHashes(initData);
 
 		if (expectedHash !== calculatedHash) {
 			throw new AppError(401, 'Unauthorized');
 		}
 
-		const currentTime = Math.floor(Date.now() / 1000);
-		let stalenessSeconds = currentTime - data.auth_date;
+		const currentTime: number = Math.floor(Date.now() / 1000);
+		let stalenessSeconds: number = currentTime - data.authDate;
 		if (stalenessSeconds > 600) {
 			throw new AppError(400, 'Stale data, please restart the app');
 		}
 
-		if (!data.user || !data.user.id) {
+		if (!data.user || typeof data.user.id !== 'number') {
 			console.error('Missing user data in initData:', JSON.stringify(data, null, 2));
 			throw new AppError(400, 'Invalid user data');
 		}
 
-		await db.saveUser(data.user, data.auth_date);
-		const token = generateSecret(16);
+		await db.saveUser(data.user, data.authDate);
+		const token: string = generateSecret(16);
 		if (!token) {
 			throw new AppError(500, 'Failed to generate token');
 		}
 
-		const tokenHash = await sha256(token);
+		const tokenHash: Uint8Array = await sha256(token);
 		await db.saveToken(data.user.id, tokenHash);
 
 		return new Response(
 			JSON.stringify({
 				token: token,
-				startParam: data.start_param,
-				startPage: data.start_param ? 'calendar' : 'home',
+				startParam: data.startParam,
+				startPage: data.startParam ? 'calendar' : 'home',
 				user: await db.getUser(data.user.id),
-			}),
-			{ status: 200, headers: { ...app.corsHeaders } }
+			} satisfies InitResponse),
+			{ status: 200, headers: { ...app.corsHeaders, 'Content-Type': 'application/json' } }
 		);
 	} catch (error: unknown) {
 		return handleError(error);
@@ -99,7 +105,7 @@ router.get('/miniApp/me', async (request: Request, app: App) => {
 
 		let suppliedToken = request.headers.get('Authorization')?.replace('Bearer ', '');
 		const tokenHash = await sha256(suppliedToken || '');
-		let user = await db.getUserByTokenHash(tokenHash);
+		let user: User | null = await db.getUserByTokenHash(tokenHash);
 
 		if (user === null) {
 			throw new AppError(401, 'Unauthorized');

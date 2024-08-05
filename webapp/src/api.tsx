@@ -1,4 +1,4 @@
-import { type InitData, type User } from '@telegram-apps/sdk-react';
+import { type InitData } from '@telegram-apps/sdk-react';
 import { transformInitData } from '@/utils/transformers';
 import { apiFetch } from '@/utils/genericApiFetch';
 
@@ -9,33 +9,18 @@ enum StartPage {
 
 export interface Me {
 	id: number;
-	is_bot: boolean;
-	first_name: string;
-	last_name?: string;
-	username?: string;
-	language_code?: string;
-	is_premium?: boolean;
-	added_to_attachment_menu?: boolean;
-	can_join_groups?: boolean;
-	can_read_all_group_messages?: boolean;
-	supports_inline_queries?: boolean;
-	can_connect_to_business?: boolean;
-}
-
-export interface User {
-	id: number;
-	is_bot: boolean;
-	first_name: string;
-	last_name?: string;
-	username?: string;
-	language_code?: string;
-	is_premium?: boolean;
-	added_to_attachment_menu?: boolean;
-	createdDate: DateString;
-	updatedDate: DateString;
-	lastAuthTimestamp: string;
+	createdDate: string;
+	updatedDate: string;
+	lastAuthTimestamp: number;
 	telegramId: number;
-	allowsWriteToPm: number;
+	isBot: boolean;
+	firstName: string | null;
+	lastName: string | null;
+	username: string | null;
+	languageCode: string | null;
+	isPremium: boolean;
+	addedToAttachmentMenu: boolean;
+	allowsWriteToPm: boolean;
 	photoUrl: string | null;
 }
 
@@ -43,12 +28,12 @@ export interface InitMiniAppResponse {
 	token: string;
 	startParam?: string | null;
 	startPage: StartPage;
-	user: User;
+	user: Me;
 }
 
 export interface SendDatesResponse {
 	success: boolean;
-	user: User;
+	user: Me;
 }
 
 export interface CalendarType {
@@ -61,8 +46,6 @@ export interface CalendarType {
 	dates: string[];
 }
 
-type DateString = string; // Format: "YYYY-MM-DD HH:mm:ss"
-
 export const initMiniApp = async (
 	initData: InitData,
 	initDataRaw: string
@@ -73,7 +56,7 @@ export const initMiniApp = async (
 	const transformedData = transformInitData(initData, initDataRaw);
 	return apiFetch<InitMiniAppResponse>('/miniApp/init', {
 		method: 'POST',
-		body: JSON.stringify(transformedData),
+		body: JSON.stringify(initData),
 	});
 };
 
