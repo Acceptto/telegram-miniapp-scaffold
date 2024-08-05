@@ -93,6 +93,7 @@ class Database {
 	}
 
 	async saveUser(user: Partial<User>, authTimestamp: number): Promise<D1Result> {
+		console.log('Attempting to save user:', JSON.stringify(user, null, 2));
 		if (!user.telegramId) {
 			throw new Error('telegramId is required to save a user');
 		}

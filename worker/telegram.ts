@@ -13,6 +13,7 @@ class TelegramAPI {
 	}
 
 	async calculateHashes(initData: string): Promise<any> {
+		console.log('Calculating hashes for initData:', initData);
 		const urlParams = new URLSearchParams(initData);
 
 		const expectedHash = urlParams.get('hash') || '';
@@ -27,11 +28,15 @@ class TelegramAPI {
 
 		dataCheckString = dataCheckString.slice(0, -1);
 
+		console.log('Data check string:', dataCheckString);
+
 		let data: any = Object.fromEntries(urlParams as any);
 
 		data.user = JSON.parse(data.user || 'null');
 		data.receiver = JSON.parse(data.receiver || 'null');
 		data.chat = JSON.parse(data.chat || 'null');
+
+		console.log('Parsed data:', JSON.stringify(data, null, 2));
 
 		const secretKey = await hmacSha256(this.token, 'WebAppData');
 		const calculatedHash = hex(await hmacSha256(dataCheckString, secretKey));
