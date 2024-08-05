@@ -1,4 +1,4 @@
-import { type InitData } from '@telegram-apps/sdk-react';
+import { type InitData, type User } from '@telegram-apps/sdk-react';
 import { transformInitData } from '@/utils/transformers';
 import { apiFetch } from '@/utils/genericApiFetch';
 

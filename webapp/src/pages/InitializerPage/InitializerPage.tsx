@@ -102,7 +102,6 @@ const ErrorMessage: React.FC<{ message: string; onRetry: () => void }> = ({ mess
 };
 
 const InitializerPage: React.FC = () => {
-	// Unconditionally call hooks
 	const { isLoading: isInitLoading, isError, error, data, refetch } = useInitMiniApp();
 	const {
 		isOnboardingComplete,
@@ -110,14 +109,12 @@ const InitializerPage: React.FC = () => {
 		setOnboardingComplete,
 	} = useOnboardingStatus();
 
-	// Compute error message unconditionally
 	const errorMessage = useMemo(() => {
 		if (isError) return error?.message || ERROR_MESSAGES.UNKNOWN;
 		if (!data?.token) return ERROR_MESSAGES.TOKEN_MISSING;
 		return null;
 	}, [isError, error, data]);
 
-	// Extract languageCode unconditionally
 	const languageCode = useMemo(() => {
 		if (data?.user.languageCode) {
 			return getSupportedLanguageCode(data.user.languageCode);
@@ -125,7 +122,6 @@ const InitializerPage: React.FC = () => {
 		return 'en';
 	}, [data]);
 
-	// Always render LanguageProvider and its children
 	return (
 		<LanguageProvider languageCode={languageCode}>
 			{isInitLoading || isStatusLoading ? (

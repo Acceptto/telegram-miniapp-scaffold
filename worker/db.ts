@@ -1,5 +1,6 @@
 import { D1Database, D1Result } from '@cloudflare/workers-types';
 import { Setting, Message, User, Token, Calendar } from '@/types/dbTypes';
+import { TelegramUser } from '@/types/types';
 
 class Database {
 	private db: D1Database;
@@ -92,25 +93,25 @@ class Database {
 		return result as User | null;
 	}
 
-	async saveUser(user: Partial<User>, authTimestamp: number): Promise<D1Result> {
+	async saveUser(user: TelegramUser, authTimestamp: number): Promise<D1Result> {
 		console.log('Attempting to save user:', JSON.stringify(user, null, 2));
-		if (!user.telegramId) {
-			throw new Error('telegramId is required to save a user');
+		if (!user.id) {
+			throw new Error('telegram id is required to save a user');
 		}
 
 		const sanitizedUser = this.sanitizeObject(
 			{
 				lastAuthTimestamp: authTimestamp,
-				telegramId: user.telegramId,
-				isBot: user.isBot,
-				firstName: user.firstName,
-				lastName: user.lastName,
+				telegramId: user.id,
+				isBot: user.is_bot,
+				firstName: user.first_name,
+				lastName: user.last_name,
 				username: user.username,
-				languageCode: user.languageCode,
-				isPremium: user.isPremium,
-				addedToAttachmentMenu: user.addedToAttachmentMenu,
-				allowsWriteToPm: user.allowsWriteToPm,
-				photoUrl: user.photoUrl,
+				languageCode: user.language_code,
+				isPremium: user.is_premium,
+				addedToAttachmentMenu: user.added_to_attachment_menu,
+				allowsWriteToPm: user.allows_write_to_pm,
+				photoUrl: user.photo_url,
 			},
 			['telegramId', 'lastAuthTimestamp', 'firstName']
 		); // Specify required fields
