@@ -62,6 +62,8 @@ router.post('/miniApp/init', async (request: Request, app: App) => {
 		let { expectedHash, calculatedHash, data }: CalculateHashesResult =
 			await telegram.calculateHashes(initData);
 
+		console.log('expectedhash: ' + expectedHash);
+		console.log('calculatedhash: ' + calculatedHash);
 		if (expectedHash !== calculatedHash) {
 			throw new AppError(401, 'Unauthorized');
 		}
