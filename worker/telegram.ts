@@ -21,16 +21,12 @@ class TelegramAPI {
 
 		let dataCheckString = '';
 
-		// Use forEach instead of entries()
-		urlParams.forEach((value, key) => {
+		for (const [key, value] of urlParams.entries()) {
 			dataCheckString += `${key}=${value}\n`;
-		});
+		}
 
 		dataCheckString = dataCheckString.slice(0, -1);
-
-		// Use Object.fromEntries with a type assertion
-		let data: any = Object.fromEntries(urlParams as any);
-
+		let data: any = Object.fromEntries(urlParams);
 		data.user = JSON.parse(data.user || 'null');
 		data.receiver = JSON.parse(data.receiver || 'null');
 		data.chat = JSON.parse(data.chat || 'null');
