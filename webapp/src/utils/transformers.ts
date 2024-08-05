@@ -4,12 +4,6 @@ interface BackendInitData {
 	initData: string;
 }
 
-/**
- * Transforms the frontend init data to the format expected by the backend.
- * @param frontendData The init data from the frontend
- * @param initDataRaw The raw init data string
- * @returns The transformed init data
- */
 export function transformInitData(frontendData: InitData, initDataRaw: string): BackendInitData {
 	const params = new URLSearchParams(initDataRaw);
 
@@ -31,17 +25,17 @@ export function transformInitData(frontendData: InitData, initDataRaw: string): 
 export function transformUser(user: TMAUser): Record<string, string | number | boolean | null> {
 	return {
 		id: user.id,
-		first_name: user.firstName,
-		...(user.lastName && { last_name: user.lastName }),
+		firstName: user.firstName,
+		...(user.lastName && { lastName: user.lastName }),
 		...(user.username && { username: user.username }),
-		...(user.languageCode && { language_code: user.languageCode }),
-		...(user.isPremium !== undefined && { is_premium: user.isPremium }),
+		...(user.languageCode && { languageCode: user.languageCode }),
+		...(user.isPremium !== undefined && { isPremium: user.isPremium }),
 		...(user.addedToAttachmentMenu !== undefined && {
-			added_to_attachment_menu: user.addedToAttachmentMenu,
+			addedToAttachmentMenu: user.addedToAttachmentMenu,
 		}),
-		...(user.allowsWriteToPm !== undefined && { allows_write_to_pm: user.allowsWriteToPm }),
-		...(user.photoUrl && { photo_url: user.photoUrl }),
-		...(user.isBot !== undefined && { is_bot: user.isBot }),
+		...(user.allowsWriteToPm !== undefined && { allowsWriteToPm: user.allowsWriteToPm }),
+		...(user.photoUrl && { photoUrl: user.photoUrl }),
+		...(user.isBot !== undefined && { isBot: user.isBot }),
 	};
 }
 
@@ -51,6 +45,6 @@ export function transformChat(chat: Chat): Record<string, string | number> {
 		type: chat.type,
 		title: chat.title,
 		...(chat.username && { username: chat.username }),
-		...(chat.photoUrl && { photo_url: chat.photoUrl }),
+		...(chat.photoUrl && { photoUrl: chat.photoUrl }),
 	};
 }
