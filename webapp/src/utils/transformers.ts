@@ -49,17 +49,24 @@ export function transformChat(chat: Chat): Record<string, string | number> {
 	};
 }
 
-export function transformInitDataNew(json: any): string {
-	const { initData } = json;
+export function transformInitDataNew(input: any): { initData: string } {
+	const { initData } = input;
 
-	const params = { ...initData };
+	const transformedData: Record<string, string> = {};
 
-	// Stringify specific objects if they exist
-	['user', 'chat', 'receiver'].forEach(key => {
-		if (params[key]) {
-			params[key] = JSON.stringify(params[key]);
+	for (const [key, value] of Object.entries(initData)) {
+		if (key === 'authDate') {
+			transformedData[key] = Math.floor(new Date(value as string).getTime() / 1000).toString();
+		} else if (typeof value === 'object' && value !== null) {
+			transformedData[key] = encodeURIComponent(JSON.stringify(value));
+		} else {
+			transformedData[key] = encodeURIComponent(String(value));
 		}
-	});
+	}
 
-	return new URLSearchParams(params).toString();
+	const queryString = Object.entries(transformedData)
+		.map(([key, value]) => `${key}=${value}`)
+		.join('&');
+
+	return { initData: queryString };
 }
