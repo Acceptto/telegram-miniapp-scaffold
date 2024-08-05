@@ -21,12 +21,14 @@ class TelegramAPI {
 
 		let dataCheckString = '';
 
-		for (const [key, value] of urlParams.entries()) {
+		urlParams.forEach((value, key) => {
 			dataCheckString += `${key}=${value}\n`;
-		}
+		});
 
 		dataCheckString = dataCheckString.slice(0, -1);
-		let data: any = Object.fromEntries(urlParams);
+
+		let data: any = Object.fromEntries(urlParams as any);
+
 		data.user = JSON.parse(data.user || 'null');
 		data.receiver = JSON.parse(data.receiver || 'null');
 		data.chat = JSON.parse(data.chat || 'null');

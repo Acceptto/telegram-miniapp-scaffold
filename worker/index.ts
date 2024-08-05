@@ -49,7 +49,11 @@ router.post('/miniApp/init', async (request: Request, app: App) => {
 		let json = (await request.json()) as any;
 		let initData = json.initData;
 
+		console.log('Received initData:', initData);
+
 		let { expectedHash, calculatedHash, data } = await telegram.calculateHashes(initData);
+
+		console.log('Calculated data:', JSON.stringify(data, null, 2));
 
 		if (expectedHash !== calculatedHash) {
 			throw new AppError(401, 'Unauthorized');
@@ -59,6 +63,11 @@ router.post('/miniApp/init', async (request: Request, app: App) => {
 		let stalenessSeconds = currentTime - data.auth_date;
 		if (stalenessSeconds > 600) {
 			throw new AppError(400, 'Stale data, please restart the app');
+		}
+
+		if (!data.user || !data.user.id) {
+			console.error('Missing user data in initData:', JSON.stringify(data, null, 2));
+			throw new AppError(400, 'Invalid user data');
 		}
 
 		await db.saveUser(data.user, data.auth_date);
