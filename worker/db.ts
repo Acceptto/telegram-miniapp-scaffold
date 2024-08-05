@@ -8,6 +8,24 @@ class Database {
 		this.db = databaseConnection;
 	}
 
+	private sanitizeValue(value: any): any {
+		if (value === undefined) {
+			return null;
+		}
+		if (typeof value === 'boolean') {
+			return Number(value);
+		}
+		return value;
+	}
+
+	private sanitizeObject(obj: Record<string, any>): Record<string, any> {
+		const sanitized: Record<string, any> = {};
+		for (const [key, value] of Object.entries(obj)) {
+			sanitized[key] = this.sanitizeValue(value);
+		}
+		return sanitized;
+	}
+
 	async getSetting(settingName: string): Promise<string | null> {
 		return await this.db
 			.prepare('SELECT value FROM settings WHERE name = ?')
@@ -24,28 +42,36 @@ class Database {
 	}
 
 	async setSetting(settingName: string, settingValue: string): Promise<D1Result> {
+		const sanitizedData = this.sanitizeObject({
+			name: settingName,
+			value: settingValue,
+		});
 		return await this.db
 			.prepare(
 				`INSERT
-        INTO settings (createdDate, updatedDate, name, value)
-        VALUES (DATETIME('now'), DATETIME('now'), ?, ?)
-        ON CONFLICT(name) DO UPDATE SET
-          updatedDate = DATETIME('now'),
-          value = excluded.value
-          WHERE excluded.value <> settings.value`
+      INTO settings (createdDate, updatedDate, name, value)
+      VALUES (DATETIME('now'), DATETIME('now'), ?, ?)
+      ON CONFLICT(name) DO UPDATE SET
+        updatedDate = DATETIME('now'),
+        value = excluded.value
+        WHERE excluded.value <> settings.value`
 			)
-			.bind(settingName, settingValue)
+			.bind(sanitizedData.name, sanitizedData.value)
 			.run();
 	}
 
 	async addMessage(message: string, updateId: number): Promise<D1Result> {
+		const sanitizedData = this.sanitizeObject({
+			message,
+			updateId,
+		});
 		return await this.db
 			.prepare(
 				`INSERT
-        INTO messages (createdDate, updatedDate, message, updateId)
-        VALUES (DATETIME('now'), DATETIME('now'), ?, ?)`
+      INTO messages (createdDate, updatedDate, message, updateId)
+      VALUES (DATETIME('now'), DATETIME('now'), ?, ?)`
 			)
-			.bind(message, updateId)
+			.bind(sanitizedData.message, sanitizedData.updateId)
 			.run();
 	}
 
@@ -57,11 +83,21 @@ class Database {
 		return result as User | null;
 	}
 
-	private sanitizeInput(value: any): any {
-		return value === undefined ? null : value;
-	}
-
 	async saveUser(user: Partial<User>, authTimestamp: number): Promise<D1Result> {
+		const sanitizedUser = this.sanitizeObject({
+			lastAuthTimestamp: authTimestamp,
+			telegramId: user.telegramId,
+			isBot: user.isBot,
+			firstName: user.firstName,
+			lastName: user.lastName,
+			username: user.username,
+			languageCode: user.languageCode,
+			isPremium: user.isPremium,
+			addedToAttachmentMenu: user.addedToAttachmentMenu,
+			allowsWriteToPm: user.allowsWriteToPm,
+			photoUrl: user.photoUrl,
+		});
+
 		return await this.db
 			.prepare(
 				`INSERT
@@ -85,17 +121,17 @@ class Database {
         WHERE excluded.lastAuthTimestamp > users.lastAuthTimestamp`
 			)
 			.bind(
-				authTimestamp,
-				user.telegramId,
-				this.sanitizeInput(Number(user.isBot)),
-				this.sanitizeInput(user.firstName),
-				this.sanitizeInput(user.lastName),
-				this.sanitizeInput(user.username),
-				this.sanitizeInput(user.languageCode),
-				this.sanitizeInput(Number(user.isPremium)),
-				this.sanitizeInput(Number(user.addedToAttachmentMenu)),
-				this.sanitizeInput(Number(user.allowsWriteToPm)),
-				this.sanitizeInput(user.photoUrl)
+				sanitizedUser.lastAuthTimestamp,
+				sanitizedUser.telegramId,
+				sanitizedUser.isBot,
+				sanitizedUser.firstName,
+				sanitizedUser.lastName,
+				sanitizedUser.username,
+				sanitizedUser.languageCode,
+				sanitizedUser.isPremium,
+				sanitizedUser.addedToAttachmentMenu,
+				sanitizedUser.allowsWriteToPm,
+				sanitizedUser.photoUrl
 			)
 			.run();
 	}
@@ -103,13 +139,17 @@ class Database {
 	async saveToken(telegramId: number, tokenHash: Uint8Array): Promise<D1Result> {
 		const user = await this.getUser(telegramId);
 		if (!user) throw new Error('User not found');
+		const sanitizedData = this.sanitizeObject({
+			userId: user.id,
+			tokenHash: tokenHash,
+		});
 		return await this.db
 			.prepare(
 				`INSERT
-        INTO tokens (createdDate, updatedDate, expiredDate, userId, tokenHash)
-        VALUES (DATETIME('now'), DATETIME('now'), DATETIME('now', '+1 day'), ?, ?)`
+      INTO tokens (createdDate, updatedDate, expiredDate, userId, tokenHash)
+      VALUES (DATETIME('now'), DATETIME('now'), DATETIME('now', '+1 day'), ?, ?)`
 			)
-			.bind(user.id, tokenHash)
+			.bind(sanitizedData.userId, sanitizedData.tokenHash)
 			.run();
 	}
 
@@ -125,13 +165,18 @@ class Database {
 	}
 
 	async saveCalendar(calendarJson: string, calendarRef: string, userId: number): Promise<D1Result> {
+		const sanitizedData = this.sanitizeObject({
+			calendarJson,
+			calendarRef,
+			userId,
+		});
 		return await this.db
 			.prepare(
 				`INSERT
-        INTO calendars (createdDate, updatedDate, calendarJson, calendarRef, userId)
-        VALUES (DATETIME('now'), DATETIME('now'), ?, ?, ?)`
+      INTO calendars (createdDate, updatedDate, calendarJson, calendarRef, userId)
+      VALUES (DATETIME('now'), DATETIME('now'), ?, ?, ?)`
 			)
-			.bind(calendarJson, calendarRef, userId)
+			.bind(sanitizedData.calendarJson, sanitizedData.calendarRef, sanitizedData.userId)
 			.run();
 	}
 
