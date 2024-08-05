@@ -56,7 +56,7 @@ export const initMiniApp = async (
 	const transformedData = transformInitData(initData, initDataRaw);
 	return apiFetch<InitMiniAppResponse>('/miniApp/init', {
 		method: 'POST',
-		body: JSON.stringify(initData),
+		body: JSON.stringify(transformedData),
 	});
 };
 
