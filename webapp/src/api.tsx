@@ -58,9 +58,10 @@ export const initMiniApp = async (
 	const transformedData = transformInitDataNew(initData);
 	console.log('transformedOld: ' + JSON.stringify(transformedDataOld));
 	console.log('transformed: ' + JSON.stringify(transformedData));
+	console.log('raw: ' + initDataRaw);
 	return apiFetch<InitMiniAppResponse>('/miniApp/init', {
 		method: 'POST',
-		body: JSON.stringify(transformedDataOld),
+		body: initDataRaw,
 	});
 };
 
