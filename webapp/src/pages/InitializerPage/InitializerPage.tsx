@@ -10,29 +10,25 @@ import Onboarding from '@/pages/Onboarding/Onboarding';
 import { cacheWithCloudStorage } from '@/utils/cacheWithCloudStorage';
 import { LanguageProvider, useLanguage } from '@/utils/LanguageContext';
 import { getSupportedLanguageCode } from '@/utils/i18n';
+import { TelegramInitData } from '@/types/types';
 
 // Constants
 const INIT_QUERY_KEY = 'initData';
 const ONBOARDING_STATUS_KEY = 'hasCompletedOnboarding';
 const ERROR_MESSAGES = {
-	INIT_DATA_UNAVAILABLE: 'error.initDataUnavailable',
 	INIT_DATA_RAW_UNAVAILABLE: 'error.initDataRawUnavailable',
 	TOKEN_MISSING: 'error.tokenMissing',
 	UNKNOWN: 'error.unknown',
 } as const;
 
-// Custom hooks
 const useInitMiniApp = () => {
 	const { initDataRaw } = useLaunchParams();
-	return useQuery<InitMiniAppResponse, Error>({
-		queryKey: [INIT_QUERY_KEY],
-		queryFn: async () => {
-			if (!initDataRaw) throw new Error(ERROR_MESSAGES.INIT_DATA_RAW_UNAVAILABLE);
-			return await initMiniApp(initDataRaw);
-		},
+	return useQuery<InitMiniAppResponse, Error, InitMiniAppResponse, [string, TelegramInitData]>({
+		queryKey: [INIT_QUERY_KEY, { initDataRaw: initDataRaw || '' }],
+		queryFn: ({ queryKey }) => initMiniApp(queryKey[1]),
 		enabled: !!initDataRaw,
-		retry: false, // Disable automatic retries
-		staleTime: Infinity, // Prevent automatic refetches
+		retry: false,
+		staleTime: Infinity,
 	});
 };
 

@@ -16,15 +16,12 @@ export const apiFetch = async <T>(
 			...options,
 			mode: 'cors',
 			headers: {
-				'Content-Type': 'application/json',
 				...options.headers,
 			},
 		});
-
 		if (!response.ok) {
 			await handleApiError(response);
 		}
-
 		return response.json();
 	} catch (error) {
 		if (retries > 0 && error instanceof NetworkError) {

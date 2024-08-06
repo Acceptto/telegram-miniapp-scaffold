@@ -1,6 +1,5 @@
-import { type InitData } from '@telegram-apps/sdk-react';
-import { transformInitData, transformInitDataNew } from '@/utils/transformers';
 import { apiFetch } from '@/utils/genericApiFetch';
+import { TelegramInitData } from '@/types/types';
 
 enum StartPage {
 	Calendar = 'calendar',
@@ -46,19 +45,13 @@ export interface CalendarType {
 	dates: string[];
 }
 
-export const initMiniApp = async (initDataRaw: string): Promise<InitMiniAppResponse> => {
-	if (!initDataRaw) {
-		throw new Error('Invalid initData or initDataRaw');
-	}
-
-	console.log('Sending initDataRaw:', initDataRaw);
-
+export const initMiniApp = async (initData: TelegramInitData): Promise<InitMiniAppResponse> => {
 	return apiFetch<InitMiniAppResponse>('/miniApp/init', {
 		method: 'POST',
 		headers: {
-			'Content-Type': 'application/x-www-form-urlencoded',
+			'Content-Type': 'application/json',
 		},
-		body: JSON.stringify({ initData: initDataRaw }),
+		body: JSON.stringify(initData),
 	});
 };
 
