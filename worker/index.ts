@@ -67,6 +67,8 @@ router.post('/miniApp/init', async (request: Request, app: App) => {
 			incomingData.initDataRaw
 		);
 
+		console.log('Expected: ' + expected_hash);
+		console.log('calculated: ' + calculated_hash);
 		if (expected_hash !== calculated_hash) {
 			throw new AppError(401, 'Unauthorized');
 		}
