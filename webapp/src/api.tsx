@@ -46,22 +46,19 @@ export interface CalendarType {
 	dates: string[];
 }
 
-export const initMiniApp = async (
-	initData: InitData,
-	initDataRaw: string
-): Promise<InitMiniAppResponse> => {
-	if (!initData || !initDataRaw) {
+export const initMiniApp = async (initDataRaw: string): Promise<InitMiniAppResponse> => {
+	if (!initDataRaw) {
 		throw new Error('Invalid initData or initDataRaw');
 	}
-	console.log('initFront: ' + JSON.stringify(initData));
-	const transformedDataOld = transformInitData(initData, initDataRaw);
-	const transformedData = transformInitDataNew(initData);
-	console.log('transformedOld: ' + JSON.stringify(transformedDataOld));
-	console.log('transformed: ' + JSON.stringify(transformedData));
-	console.log('raw: ' + initDataRaw);
+
+	console.log('Sending initDataRaw:', initDataRaw);
+
 	return apiFetch<InitMiniAppResponse>('/miniApp/init', {
 		method: 'POST',
-		body: initDataRaw,
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded',
+		},
+		body: JSON.stringify({ initData: initDataRaw }),
 	});
 };
 

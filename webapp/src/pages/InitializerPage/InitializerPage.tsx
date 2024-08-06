@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useInitData, useLaunchParams, useCloudStorage } from '@telegram-apps/sdk-react';
+import { useLaunchParams, useCloudStorage } from '@telegram-apps/sdk-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Text, Button } from '@telegram-apps/telegram-ui';
 import LoadingSpinner from '@/utils/loadingSpinner';
@@ -23,16 +23,14 @@ const ERROR_MESSAGES = {
 
 // Custom hooks
 const useInitMiniApp = () => {
-	const initData = useInitData();
 	const { initDataRaw } = useLaunchParams();
 	return useQuery<InitMiniAppResponse, Error>({
 		queryKey: [INIT_QUERY_KEY],
 		queryFn: async () => {
-			if (!initData) throw new Error(ERROR_MESSAGES.INIT_DATA_UNAVAILABLE);
 			if (!initDataRaw) throw new Error(ERROR_MESSAGES.INIT_DATA_RAW_UNAVAILABLE);
-			return await initMiniApp(initData, initDataRaw);
+			return await initMiniApp(initDataRaw);
 		},
-		enabled: !!initData && !!initDataRaw,
+		enabled: !!initDataRaw,
 		retry: false, // Disable automatic retries
 		staleTime: Infinity, // Prevent automatic refetches
 	});
