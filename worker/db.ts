@@ -9,30 +9,6 @@ class Database {
 		this.db = databaseConnection;
 	}
 
-	private sanitizeValue(value: any): any {
-		if (value === undefined) {
-			return null;
-		}
-		if (typeof value === 'boolean') {
-			return Number(value);
-		}
-		return value;
-	}
-
-	private sanitizeObject(
-		obj: Record<string, any>,
-		requiredFields: string[] = []
-	): Record<string, any> {
-		const sanitized: Record<string, any> = {};
-		for (const [key, value] of Object.entries(obj)) {
-			if (requiredFields.includes(key) && (value === undefined || value === null)) {
-				throw new Error(`Required field '${key}' cannot be null or undefined`);
-			}
-			sanitized[key] = this.sanitizeValue(value);
-		}
-		return sanitized;
-	}
-
 	async getSetting(settingName: string): Promise<string | null> {
 		return await this.db
 			.prepare('SELECT value FROM settings WHERE name = ?')
@@ -49,163 +25,136 @@ class Database {
 	}
 
 	async setSetting(settingName: string, settingValue: string): Promise<D1Result> {
-		const sanitizedData = this.sanitizeObject({
-			name: settingName,
-			value: settingValue,
-		});
 		return await this.db
 			.prepare(
-				`INSERT
-      INTO settings (createdDate, updatedDate, name, value)
-      VALUES (DATETIME('now'), DATETIME('now'), ?, ?)
-      ON CONFLICT(name) DO UPDATE SET
-        updatedDate = DATETIME('now'),
-        value = excluded.value
-        WHERE excluded.value <> settings.value`
+				`
+        INSERT INTO settings (created_date, updated_date, name, value)
+        VALUES (DATETIME('now'), DATETIME('now'), ?, ?)
+        ON CONFLICT(name) DO UPDATE SET
+          updated_date = DATETIME('now'),
+          value = excluded.value
+        WHERE excluded.value <> settings.value
+      `
 			)
-			.bind(sanitizedData.name, sanitizedData.value)
+			.bind(settingName, settingValue)
 			.run();
 	}
 
 	async addMessage(message: string, updateId: number): Promise<D1Result> {
-		const sanitizedData = this.sanitizeObject({
-			message,
-			updateId,
-		});
 		return await this.db
 			.prepare(
-				`INSERT
-      INTO messages (createdDate, updatedDate, message, updateId)
-      VALUES (DATETIME('now'), DATETIME('now'), ?, ?)`
+				`
+        INSERT INTO messages (created_date, updated_date, message, update_id)
+        VALUES (DATETIME('now'), DATETIME('now'), ?, ?)
+      `
 			)
-			.bind(sanitizedData.message, sanitizedData.updateId)
+			.bind(message, updateId)
 			.run();
 	}
 
-	async getUser(telegramId: number): Promise<User | null> {
-		if (!telegramId) {
-			throw new Error('telegramId is required to get a user');
+	async getUser(telegram_id: number): Promise<User | null> {
+		if (!telegram_id) {
+			throw new Error('telegram_id is required to get a user');
 		}
-		const result = await this.db
-			.prepare('SELECT * FROM users WHERE telegramId = ?')
-			.bind(telegramId)
+		return await this.db
+			.prepare('SELECT * FROM users WHERE telegram_id = ?')
+			.bind(telegram_id)
 			.first();
-		return result as User | null;
 	}
 
-	async saveUser(user: TelegramUser, authTimestamp: number): Promise<D1Result> {
-		console.log('Attempting to save user:', JSON.stringify(user, null, 2));
+	async saveUser(user: TelegramUser, auth_timestamp: number): Promise<D1Result> {
 		if (!user.id) {
-			throw new Error('telegram id is required to save a user');
+			throw new Error('Telegram ID is required to save a user');
 		}
 
-		const sanitizedUser = this.sanitizeObject(
-			{
-				lastAuthTimestamp: authTimestamp,
-				telegramId: user.id,
-				isBot: user.isBot,
-				firstName: user.firstName,
-				lastName: user.lastName,
-				username: user.username,
-				languageCode: user.languageCode,
-				isPremium: user.isPremium,
-				addedToAttachmentMenu: user.addedToAttachmentMenu,
-				allowsWriteToPm: user.allowsWriteToPm,
-				photoUrl: user.photoUrl,
-			},
-			['telegramId', 'lastAuthTimestamp', 'firstName']
-		); // Specify required fields
+		const userData = {
+			last_auth_timestamp: auth_timestamp,
+			telegram_id: user.id,
+			is_bot: Number(user.is_bot),
+			first_name: user.first_name || null,
+			last_name: user.last_name || null,
+			username: user.username || null,
+			language_code: user.language_code || null,
+			is_premium: Number(user.is_premium),
+			added_to_attachment_menu: Number(user.added_to_attachment_menu),
+			allows_write_to_pm: Number(user.allows_write_to_pm),
+			photo_url: user.photo_url || null,
+		};
 
-		return await this.db
-			.prepare(
-				`INSERT
-      INTO users (createdDate, updatedDate, lastAuthTimestamp,
-        telegramId, isBot, firstName, lastName, username, languageCode,
-        isPremium, addedToAttachmentMenu, allowsWriteToPm, photoUrl
-        )
-      VALUES (DATETIME('now'), DATETIME('now'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(telegramId) DO UPDATE SET
-        updatedDate = DATETIME('now'),
-        lastAuthTimestamp = COALESCE(excluded.lastAuthTimestamp, lastAuthTimestamp),
-        isBot = COALESCE(excluded.isBot, isBot),
-        firstName = excluded.firstName,
-        lastName = excluded.lastName,
-        username = excluded.username,
-        languageCode = COALESCE(excluded.languageCode, languageCode),
-        isPremium = COALESCE(excluded.isPremium, isPremium),
-        addedToAttachmentMenu = COALESCE(excluded.addedToAttachmentMenu, addedToAttachmentMenu),
-        allowsWriteToPm = COALESCE(excluded.allowsWriteToPm, allowsWriteToPm),
-        photoUrl = COALESCE(excluded.photoUrl, photoUrl)
-        WHERE excluded.lastAuthTimestamp > users.lastAuthTimestamp`
-			)
-			.bind(
-				sanitizedUser.lastAuthTimestamp,
-				sanitizedUser.telegramId,
-				sanitizedUser.isBot,
-				sanitizedUser.firstName,
-				sanitizedUser.lastName,
-				sanitizedUser.username,
-				sanitizedUser.languageCode,
-				sanitizedUser.isPremium,
-				sanitizedUser.addedToAttachmentMenu,
-				sanitizedUser.allowsWriteToPm,
-				sanitizedUser.photoUrl
-			)
-			.run();
+		const fields = Object.keys(userData).join(', ');
+		const placeholders = Object.keys(userData)
+			.map(() => '?')
+			.join(', ');
+		const updates = Object.keys(userData)
+			.map(key => `${key} = COALESCE(excluded.${key}, ${key})`)
+			.join(', ');
+
+		const query = `
+      INSERT INTO users (created_date, updated_date, ${fields})
+      VALUES (DATETIME('now'), DATETIME('now'), ${placeholders})
+      ON CONFLICT(telegram_id) DO UPDATE SET
+        updated_date = DATETIME('now'),
+        ${updates}
+      WHERE excluded.last_auth_timestamp > users.last_auth_timestamp
+    `;
+
+		try {
+			return await this.db
+				.prepare(query)
+				.bind(...Object.values(userData))
+				.run();
+		} catch (error) {
+			console.error('Error saving user:', error);
+			throw new Error('Failed to save user data');
+		}
 	}
 
 	async saveToken(telegramId: number, tokenHash: Uint8Array): Promise<D1Result> {
 		const user = await this.getUser(telegramId);
 		if (!user) throw new Error('User not found');
-		const sanitizedData = this.sanitizeObject({
-			userId: user.id,
-			tokenHash: tokenHash,
-		});
 		return await this.db
 			.prepare(
-				`INSERT
-      INTO tokens (createdDate, updatedDate, expiredDate, userId, tokenHash)
-      VALUES (DATETIME('now'), DATETIME('now'), DATETIME('now', '+1 day'), ?, ?)`
+				`
+        INSERT INTO tokens (created_date, updated_date, expired_date, user_id, token_hash)
+        VALUES (DATETIME('now'), DATETIME('now'), DATETIME('now', '+1 day'), ?, ?)
+      `
 			)
-			.bind(sanitizedData.userId, sanitizedData.tokenHash)
+			.bind(user.id, tokenHash)
 			.run();
 	}
 
 	async getUserByTokenHash(tokenHash: Uint8Array): Promise<User | null> {
 		return await this.db
 			.prepare(
-				`SELECT users.* FROM tokens
-        INNER JOIN users ON tokens.userId = users.id
-        WHERE tokenHash = ? AND DATETIME('now') < expiredDate`
+				`
+      SELECT u.*
+      FROM users u
+      JOIN tokens t ON u.id = t.user_id
+      WHERE t.token_hash = ? AND t.expired_date > DATETIME('now')
+      LIMIT 1
+    `
 			)
 			.bind(tokenHash)
 			.first();
 	}
 
 	async saveCalendar(calendarJson: string, calendarRef: string, userId: number): Promise<D1Result> {
-		const sanitizedData = this.sanitizeObject({
-			calendarJson,
-			calendarRef,
-			userId,
-		});
 		return await this.db
 			.prepare(
-				`INSERT
-      INTO calendars (createdDate, updatedDate, calendarJson, calendarRef, userId)
-      VALUES (DATETIME('now'), DATETIME('now'), ?, ?, ?)`
+				`
+        INSERT INTO calendars (created_date, updated_date, calendar_json, calendar_ref, user_id)
+        VALUES (DATETIME('now'), DATETIME('now'), ?, ?, ?)
+      `
 			)
-			.bind(sanitizedData.calendarJson, sanitizedData.calendarRef, sanitizedData.userId)
+			.bind(calendarJson, calendarRef, userId)
 			.run();
 	}
 
 	async getCalendarByRef(calendarRef: string): Promise<string | null> {
 		return await this.db
-			.prepare(
-				`SELECT calendarJson FROM calendars
-        WHERE calendarRef = ?`
-			)
+			.prepare('SELECT calendar_json FROM calendars WHERE calendar_ref = ?')
 			.bind(calendarRef)
-			.first('calendarJson');
+			.first('calendar_json');
 	}
 }
 

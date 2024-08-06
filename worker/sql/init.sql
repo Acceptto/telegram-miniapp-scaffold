@@ -1,76 +1,76 @@
 CREATE TABLE IF NOT EXISTS settings (
 	name text PRIMARY KEY,
-	createdDate text NOT NULL,
-	updatedDate text NOT NULL,
+	created_date text NOT NULL,
+	updated_date text NOT NULL,
 	value text NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS messages (
 	id integer PRIMARY KEY AUTOINCREMENT,
-	createdDate text NOT NULL,
-	updatedDate text NOT NULL,
+	created_date text NOT NULL,
+	updated_date text NOT NULL,
 	message text NOT NULL,
-	updateId text NOT NULL
+	update_id text NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS initDataCheck (
 	id integer PRIMARY KEY AUTOINCREMENT,
-	createdDate text NOT NULL,
-	updatedDate text NOT NULL,
-	initData text NOT NULL,
-	expectedHash text NOT NULL,
-	calculatedHash text NOT NULL
+	created_date text NOT NULL,
+	updated_date text NOT NULL,
+	init_data text NOT NULL,
+	expected_hash text NOT NULL,
+	calculated_hash text NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS users (
 	id integer PRIMARY KEY AUTOINCREMENT,
-	createdDate text NOT NULL,
-	updatedDate text NOT NULL,
-	lastAuthTimestamp text NOT NULL,
-	telegramId integer UNIQUE NOT NULL,
+	created_date text NOT NULL,
+	updated_date text NOT NULL,
+	last_auth_timestamp text NOT NULL,
+	telegram_id integer UNIQUE NOT NULL,
 	username text,
-	isBot integer,
-	firstName text,
-	lastName text,
-	languageCode text,
-	isPremium integer,
-	addedToAttachmentMenu integer,
-	allowsWriteToPm integer,
-	photoUrl text
+	is_bot integer,
+	first_mame text,
+	last_name text,
+	language_code text,
+	is_premium integer,
+	added_to_attachment_menu integer,
+	allows_write_to_pm integer,
+	photo_url text
 );
 
 CREATE TABLE IF NOT EXISTS tokens (
 	id integer PRIMARY KEY AUTOINCREMENT,
-	createdDate text NOT NULL,
-	updatedDate text NOT NULL,
-	expiredDate text NOT NULL,
-	tokenHash text UNIQUE NOT NULL,
-	userId integer NOT NULL,
-	FOREIGN KEY(userId) REFERENCES users(id)
+	created_date text NOT NULL,
+	updated_date text NOT NULL,
+	expired_date text NOT NULL,
+	token_hash text UNIQUE NOT NULL,
+	user_id integer NOT NULL,
+	FOREIGN KEY(user_id) REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS calendars (
 	id integer PRIMARY KEY AUTOINCREMENT,
-	createdDate text NOT NULL,
-	updatedDate text NOT NULL,
-	userId integer NOT NULL,
-	calendarJson text NOT NULL,
-	calendarRef text NOT NULL,
-	FOREIGN KEY(userId) REFERENCES users(id)
+	created_date text NOT NULL,
+	updated_date text NOT NULL,
+	user_id integer NOT NULL,
+	calendar_json text NOT NULL,
+	calendar_ref text NOT NULL,
+	FOREIGN KEY(user_id) REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS selectedDates (
 	id integer PRIMARY KEY AUTOINCREMENT,
-	createdDate text NOT NULL,
-	updatedDate text NOT NULL,
-	userId integer NOT NULL,
-	calendarId integer NOT NULL,
-	selectedDatesJson text NOT NULL,
-	FOREIGN KEY(userId) REFERENCES users(id),
-	FOREIGN KEY(calendarId) REFERENCES calendars(id)
+	created_date text NOT NULL,
+	updated_date text NOT NULL,
+	user_id integer NOT NULL,
+	calendar_id integer NOT NULL,
+	selected_dates_json text NOT NULL,
+	FOREIGN KEY(user_id) REFERENCES users(id),
+	FOREIGN KEY(calendar_id) REFERENCES calendars(id)
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS userSelectedDatesIndex ON selectedDates (userId, calendarId);
+CREATE UNIQUE INDEX IF NOT EXISTS user_selected_dates_index ON selectedDates (user_id, calendar_id);
 
-CREATE UNIQUE INDEX IF NOT EXISTS tokenHashIndex ON tokens (tokenHash);
-CREATE UNIQUE INDEX IF NOT EXISTS telegramIdIndex ON users (telegramId);
+CREATE UNIQUE INDEX IF NOT EXISTS token_hash_index ON tokens (token_hash);
+CREATE UNIQUE INDEX IF NOT EXISTS telegram_id_index ON users (telegram_id);

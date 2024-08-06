@@ -1,51 +1,15 @@
 import { apiFetch } from '@/utils/genericApiFetch';
-import { TelegramInitData } from '@/types/types';
-
-enum StartPage {
-	Calendar = 'calendar',
-	Home = 'home',
-}
-
-export interface Me {
-	id: number;
-	createdDate: string;
-	updatedDate: string;
-	lastAuthTimestamp: number;
-	telegramId: number;
-	isBot: boolean;
-	firstName: string | null;
-	lastName: string | null;
-	username: string | null;
-	languageCode: string | null;
-	isPremium: boolean;
-	addedToAttachmentMenu: boolean;
-	allowsWriteToPm: boolean;
-	photoUrl: string | null;
-}
-
-export interface InitMiniAppResponse {
-	token: string;
-	startParam?: string | null;
-	startPage: StartPage;
-	user: Me;
-}
-
-export interface SendDatesResponse {
-	success: boolean;
-	user: Me;
-}
-
-export interface CalendarType {
-	id: number;
-	createdDate: string;
-	updatedDate: string;
-	userId: number;
-	calendarJson: string;
-	calendarRef: string;
-	dates: string[];
-}
+import {
+	TelegramInitData,
+	Me,
+	InitMiniAppResponse,
+	SendDatesResponse,
+	CalendarType,
+} from '@/types/types';
 
 export const initMiniApp = async (initData: TelegramInitData): Promise<InitMiniAppResponse> => {
+	console.log('initdata: ' + initData);
+	console.log('initdataStrg: ' + JSON.stringify(initData));
 	return apiFetch<InitMiniAppResponse>('/miniApp/init', {
 		method: 'POST',
 		headers: {
@@ -56,7 +20,7 @@ export const initMiniApp = async (initData: TelegramInitData): Promise<InitMiniA
 };
 
 export const getMe = async (token: string) => {
-	return apiFetch<{ user: Me }>('/miniApp/me', {
+	return apiFetch<{ user: User }>('/miniApp/me', {
 		headers: { Authorization: `Bearer ${token}` },
 	});
 };

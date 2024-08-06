@@ -28,17 +28,21 @@ export interface Env {
 	INIT_SECRET: string;
 }
 
+export interface IncomingInitData {
+	initDataRaw: string;
+}
+
 export interface TelegramUser {
 	id: number;
-	isBot: boolean;
-	firstName: string;
-	lastName?: string;
+	is_bot: boolean;
+	first_name: string;
+	last_name?: string;
 	username?: string;
-	languageCode?: string;
-	isPremium?: boolean;
-	addedToAttachmentMenu?: boolean;
-	allowsWriteToPm?: boolean;
-	photoUrl?: string | null;
+	language_code?: string;
+	is_premium?: boolean;
+	added_to_attachment_menu?: boolean;
+	allows_write_to_pm?: boolean;
+	photo_url?: string | null;
 }
 
 export interface TelegramMessage {
@@ -75,32 +79,32 @@ export interface getMe {
 
 export interface Chat {
 	id: number;
-	photoUrl?: string;
+	phot_url?: string;
 	type?: 'group' | 'supergroup' | 'channel' | string;
 	title?: string;
 	username?: string;
 }
 
 export interface CalculateHashesResult {
-	expectedHash: string;
-	calculatedHash: string;
+	expected_hash: string;
+	calculated_hash: string;
 	data: {
-		authDate: number;
-		chatInstance?: number;
-		chatType?: 'sender' | 'private' | 'group' | 'supergroup' | 'channel' | string;
+		auth_date: number;
+		chat_instance?: number;
+		chat_type?: 'sender' | 'private' | 'group' | 'supergroup' | 'channel' | string;
 		receiver?: TelegramUser;
 		chat?: Chat;
-		startParam?: string | null;
-		canSendAfter?: number;
-		queryId?: string;
+		start_param?: string | null;
+		can_send_after?: number;
+		query_id?: string;
 		user?: TelegramUser;
 	};
 }
 
 export interface InitResponse {
 	token: string;
-	startParam?: string | null;
-	startPage: 'calendar' | 'home';
+	start_param?: string | null;
+	start_page: 'calendar' | 'home';
 	user: dbTypes.User | null;
 }
 

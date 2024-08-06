@@ -1,4 +1,5 @@
 import { hmacSha256, hex } from '@/cryptoUtils';
+import { CalculateHashesResult } from '@/types/types';
 
 const TELEGRAM_API_BASE_URL = 'https://api.telegram.org/bot';
 
@@ -12,36 +13,35 @@ class TelegramAPI {
 		this.apiBaseUrl = `${TELEGRAM_API_BASE_URL}${token}/${testApiAddendum}`;
 	}
 
-	async calculateHashes(initData: string): Promise<any> {
-		console.log('Calculating hashes for initData:', initData);
+	async calculateHashes(initData: string): Promise<{
+		expected_hash: string;
+		calculated_hash: string;
+		data: CalculateHashesResult;
+	}> {
 		const urlParams = new URLSearchParams(initData);
-
-		const expectedHash = urlParams.get('hash') || '';
+		const expected_hash = urlParams.get('hash') || '';
 		urlParams.delete('hash');
 		urlParams.sort();
 
-		let dataCheckString = '';
+		const dataCheckString = Array.from(urlParams.entries())
+			.map(([key, value]) => `${key}=${value}`)
+			.join('\n');
 
-		urlParams.forEach((value, key) => {
-			dataCheckString += `${key}=${value}\n`;
+		const data: any = Object.fromEntries(urlParams);
+		['user', 'receiver', 'chat'].forEach(key => {
+			if (data[key]) {
+				try {
+					data[key] = JSON.parse(data[key]);
+				} catch (error) {
+					console.error(`Failed to parse ${key}:`, error);
+				}
+			}
 		});
 
-		dataCheckString = dataCheckString.slice(0, -1);
-
-		console.log('Data check string:', dataCheckString);
-
-		let data: any = Object.fromEntries(urlParams as any);
-
-		data.user = JSON.parse(data.user || 'null');
-		data.receiver = JSON.parse(data.receiver || 'null');
-		data.chat = JSON.parse(data.chat || 'null');
-
-		console.log('Parsed data:', JSON.stringify(data, null, 2));
-
 		const secretKey = await hmacSha256(this.token, 'WebAppData');
-		const calculatedHash = hex(await hmacSha256(dataCheckString, secretKey));
+		const calculated_hash = hex(await hmacSha256(dataCheckString, secretKey));
 
-		return { expectedHash, calculatedHash, data };
+		return { expected_hash, calculated_hash, data };
 	}
 
 	async getUpdates(lastUpdateId?: number): Promise<any> {

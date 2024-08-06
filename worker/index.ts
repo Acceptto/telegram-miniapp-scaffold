@@ -12,6 +12,7 @@ import {
 	getMe,
 	InitResponse,
 	CalculateHashesResult,
+	IncomingInitData,
 } from '@/types/types';
 import { AppError, handleError } from './errorHandler';
 
@@ -55,47 +56,50 @@ router.get('/', () => {
 router.post('/miniApp/init', async (request: Request, app: App) => {
 	try {
 		const { telegram, db }: { telegram: Telegram; db: Database } = app;
-		let json = (await request.json()) as any;
-		let initData = json.initData as any;
-		console.log('Data on enter: ' + initData);
 
-		let { expectedHash, calculatedHash, data }: CalculateHashesResult =
-			await telegram.calculateHashes(initData);
+		const incomingData = (await request.json()) as IncomingInitData;
 
-		console.log('expectedhash: ' + expectedHash);
-		console.log('calculatedhash: ' + calculatedHash);
-		if (expectedHash !== calculatedHash) {
+		if (typeof incomingData.initDataRaw !== 'string') {
+			throw new AppError(400, 'Invalid initDataRaw');
+		}
+
+		const { expected_hash, calculated_hash, data } = await telegram.calculateHashes(
+			incomingData.initDataRaw
+		);
+
+		if (expected_hash !== calculated_hash) {
 			throw new AppError(401, 'Unauthorized');
 		}
 
-		const currentTime: number = Math.floor(Date.now() / 1000);
-		let stalenessSeconds: number = currentTime - data.authDate;
-		if (stalenessSeconds > 600) {
+		const currentTime = Math.floor(Date.now() / 1000);
+		if (currentTime - data.data.auth_date > 600) {
 			throw new AppError(400, 'Stale data, please restart the app');
 		}
 
-		if (!data.user || typeof data.user.id !== 'number') {
-			console.error('Missing user data in initData:', JSON.stringify(data, null, 2));
+		if (!data.data.user || typeof data.data.user.id !== 'number') {
 			throw new AppError(400, 'Invalid user data');
 		}
 
-		await db.saveUser(data.user, data.authDate);
-		const token: string = generateSecret(16);
+		await db.saveUser(data.data.user, data.data.auth_date);
+		const token = generateSecret(16);
 		if (!token) {
 			throw new AppError(500, 'Failed to generate token');
 		}
 
-		const tokenHash: Uint8Array = await sha256(token);
-		await db.saveToken(data.user.id, tokenHash);
+		const tokenHash = await sha256(token);
+		await db.saveToken(data.data.user.id, tokenHash);
 
 		return new Response(
 			JSON.stringify({
-				token: token,
-				startParam: data.startParam,
-				startPage: data.startParam ? 'calendar' : 'home',
-				user: await db.getUser(data.user.id),
+				token,
+				start_param: data.data.start_param ?? null,
+				start_page: data.data.start_param ? 'calendar' : 'home',
+				user: await db.getUser(data.data.user.id),
 			} satisfies InitResponse),
-			{ status: 200, headers: { ...app.corsHeaders, 'Content-Type': 'application/json' } }
+			{
+				status: 200,
+				headers: { ...app.corsHeaders, 'Content-Type': 'application/json' },
+			}
 		);
 	} catch (error: unknown) {
 		return handleError(error);
@@ -170,10 +174,10 @@ router.post('/miniApp/dates', async (request: Request, app: App) => {
 		let jsonToSave = JSON.stringify({ dates: json.dates });
 		await db.saveCalendar(jsonToSave, ref, user.id);
 
-		const languageCode = user.languageCode;
+		const languageCode = user.language_code;
 
 		let messageSender = new MessageSender(app, languageCode);
-		await messageSender.sendCalendarLink(user.telegramId, user.firstName, ref);
+		await messageSender.sendCalendarLink(user.telegram_id, user.first_name, ref);
 
 		return new Response(JSON.stringify({ user: user }), {
 			status: 200,

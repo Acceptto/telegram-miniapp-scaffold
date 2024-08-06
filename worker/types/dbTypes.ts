@@ -13,19 +13,19 @@ export interface Message {
 
 export interface User {
 	id: number;
-	createdDate: string;
-	updatedDate: string;
-	lastAuthTimestamp: number;
-	telegramId: number;
-	isBot: boolean;
-	firstName: string | null;
-	lastName: string | null;
+	created_date: string;
+	updated_date: string;
+	last_auth_timestamp: number;
+	telegram_id: number;
+	is_bot: boolean;
+	first_name: string | null;
+	last_name: string | null;
 	username: string | null;
-	languageCode: string | null;
-	isPremium: boolean;
-	addedToAttachmentMenu: boolean;
-	allowsWriteToPm: boolean;
-	photoUrl: string | null;
+	language_code: string | null;
+	is_premium: boolean;
+	added_to_attachment_menu: boolean;
+	allows_write_to_pm: boolean;
+	photo_url: string | null;
 }
 
 export interface Token {
