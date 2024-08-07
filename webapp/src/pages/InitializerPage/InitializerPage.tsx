@@ -109,8 +109,8 @@ const InitializerPage: React.FC = () => {
 	}, [isError, error, data]);
 
 	const languageCode = useMemo(() => {
-		if (data?.user.languageCode) {
-			return getSupportedLanguageCode(data.user.languageCode);
+		if (data?.user.language_code) {
+			return getSupportedLanguageCode(data.user.language_code);
 		}
 		return 'en';
 	}, [data]);
@@ -123,8 +123,8 @@ const InitializerPage: React.FC = () => {
 				<ErrorMessage message={errorMessage} onRetry={refetch} />
 			) : isOnboardingComplete ? (
 				<Home token={data!.token} />
-			) : data?.startPage === 'calendar' && data.startParam ? (
-				<Calendar token={data.token} apiRef={data.startParam} />
+			) : data?.start_page === 'calendar' && data.start_param ? (
+				<Calendar token={data.token} apiRef={data.start_param} />
 			) : (
 				<Onboarding onComplete={() => setOnboardingComplete(true)} />
 			)}
