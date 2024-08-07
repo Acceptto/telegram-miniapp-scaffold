@@ -16,8 +16,8 @@ import {
 } from '@/types/types';
 import { AppError, handleError } from './errorHandler';
 
-type CFArgs = [Env, ExecutionContext];
-const router = Router<IRequest, CFArgs>();
+//type CFArgs = [Env, ExecutionContext];
+const router = Router();
 
 const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promise<Response> => {
 	let telegram: Telegram = new Telegram(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_USE_TEST_API);
