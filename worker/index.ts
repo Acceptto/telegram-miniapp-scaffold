@@ -17,7 +17,7 @@ import {
 import { AppError, handleError } from './errorHandler';
 
 // Create a new router
-const router: Router = Router();
+const router = Router();
 
 const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promise<Response> => {
 	let telegram: Telegram = new Telegram(env.TELEGRAM_BOT_TOKEN, env.TELEGRAM_USE_TEST_API);
