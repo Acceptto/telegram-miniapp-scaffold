@@ -11,7 +11,7 @@
 	},
 	"dependencies": {
 		"@vlad-yakovlev/telegram-md": "^2.0.0",
-		"itty-router": "^5.0.17"
+		"itty-router": "^2.6.1"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20240806.0",
