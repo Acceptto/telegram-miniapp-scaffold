@@ -266,6 +266,7 @@ router.post('/init', async (request: Request, app: App, env: Env) => {
 			{ status: 200 }
 		);
 	} catch (error: unknown) {
+		console.error('Error in /init endpoint:', error);
 		return handleError(error);
 	}
 });

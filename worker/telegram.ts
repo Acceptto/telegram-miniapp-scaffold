@@ -88,12 +88,12 @@ class TelegramAPI {
 		return response.json();
 	}
 
-	async setWebhook(externalUrl: string, secretToken?: string): Promise<any> {
+	async setWebhook(external_url: string, secret_token?: string): Promise<any> {
 		const params: any = {
-			url: externalUrl,
+			url: external_url,
 		};
-		if (secretToken) {
-			params.secret_token = secretToken;
+		if (secret_token) {
+			params.secret_token = secret_token;
 		}
 		const url = `${this.apiBaseUrl}setWebhook`;
 		const response = await fetch(url, {
