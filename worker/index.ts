@@ -263,17 +263,44 @@ const handleInit = async (request: IRequest, env: Env, ctx: ExecutionContext, ap
 			await db.setSetting('telegram_security_code', token);
 		}
 
-		const json = (await request.json()) as any;
+		const json = await request.json();
+		if (!json || typeof json.externalUrl !== 'string') {
+			throw new AppError(400, 'Invalid or missing externalUrl in request body');
+		}
+
 		const externalUrl = json.externalUrl;
+		console.log(`Setting webhook to: ${externalUrl}/telegramMessage`);
 		const response = await telegram.setWebhook(`${externalUrl}/telegramMessage`, token);
 
+		if (!response.ok) {
+			console.error('Webhook setting failed:', response);
+			throw new AppError(500, 'Failed to set webhook');
+		}
+
+		console.log('Webhook set successfully:', response);
+
 		return new Response(
-			`Success! Bot Name: https://t.me/${bot_name}. Webhook status: ${JSON.stringify(response)}`,
-			{ status: 200 }
+			JSON.stringify({
+				success: true,
+				message: `Success! Bot Name: https://t.me/${bot_name}. Webhook status: ${JSON.stringify(response)}`,
+			}),
+			{
+				status: 200,
+				headers: { 'Content-Type': 'application/json' },
+			}
 		);
 	} catch (error: unknown) {
 		console.error('Error in /init endpoint:', error);
-		return handleError(error);
+		if (error instanceof AppError) {
+			return new Response(JSON.stringify({ success: false, error: error.message }), {
+				status: error.statusCode,
+				headers: { 'Content-Type': 'application/json' },
+			});
+		}
+		return new Response(JSON.stringify({ success: false, error: 'An unexpected error occurred' }), {
+			status: 500,
+			headers: { 'Content-Type': 'application/json' },
+		});
 	}
 };
 
