@@ -82,14 +82,15 @@ router.post('/miniApp/init', async (request: Request, app: App) => {
 			throw new AppError(400, 'Invalid user data');
 		}
 
-		await db.saveUser(data.data.user, data.data.auth_date);
+		//await db.saveUser(data.data.user, data.data.auth_date);
 		const token = generateSecret(16);
 		if (!token) {
 			throw new AppError(500, 'Failed to generate token');
 		}
 
 		const tokenHash = await sha256(token);
-		await db.saveToken(data.data.user.id, tokenHash);
+		//await db.saveToken(data.data.user.id, tokenHash);
+		await db.saveUserAndToken(data.data.user, data.data.auth_date, tokenHash);
 
 		return new Response(
 			JSON.stringify({

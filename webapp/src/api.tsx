@@ -1,15 +1,13 @@
 import { apiFetch } from '@/utils/genericApiFetch';
 import {
 	TelegramInitData,
-	Me,
+	User,
 	InitMiniAppResponse,
 	SendDatesResponse,
 	CalendarType,
 } from '@/types/types';
 
 export const initMiniApp = async (initData: TelegramInitData): Promise<InitMiniAppResponse> => {
-	console.log('initdata: ' + initData);
-	console.log('initdataStrg: ' + JSON.stringify(initData));
 	return apiFetch<InitMiniAppResponse>('/miniApp/init', {
 		method: 'POST',
 		headers: {

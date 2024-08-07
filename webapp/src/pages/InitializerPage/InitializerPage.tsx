@@ -12,7 +12,6 @@ import { LanguageProvider, useLanguage } from '@/utils/LanguageContext';
 import { getSupportedLanguageCode } from '@/utils/i18n';
 import { TelegramInitData } from '@/types/types';
 
-// Constants
 const INIT_QUERY_KEY = 'initData';
 const ONBOARDING_STATUS_KEY = 'hasCompletedOnboarding';
 const ERROR_MESSAGES = {
