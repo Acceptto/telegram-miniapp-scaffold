@@ -53,7 +53,7 @@ export interface TelegramUpdate {
 	update_id: number;
 }
 
-interface GetMe {
+export interface GetMe {
 	ok: boolean;
 	result: {
 		id: number;

@@ -32,7 +32,7 @@ const handle = async (request: Request, env: Env, ctx: ExecutionContext): Promis
 		request.headers.get('Host')?.match(/^(localhost|127\.0\.0\.1)/) !== null;
 	let bot_name: string | null = await db.getSetting('bot_name');
 	if (!bot_name) {
-		let me: GetMe | null = await telegram.getMe();
+		let me: GetMe = await telegram.getMe();
 		bot_name = me.result?.username ?? null;
 		if (bot_name) {
 			await db.setSetting('bot_name', bot_name);
