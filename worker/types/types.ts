@@ -6,30 +6,22 @@ export * from '@/types/dbTypes';
 export interface App {
 	telegram: Telegram;
 	db: Database;
-	corsHeaders: Record<string, string>;
-	isLocalhost: boolean;
-	botName: string | null;
+	cors_headers: Record<string, string>;
+	is_localhost: boolean;
+	bot_name: string | null;
 }
 
-export interface Env {
-	/** Telegram Bot Token. Must be kept secret. */
+// Update Env interface to extend Cloudflare's Env
+export interface Env extends Record<string, unknown> {
 	TELEGRAM_BOT_TOKEN: string;
-
-	/** Whether to use Telegram's test API. Optional. */
 	TELEGRAM_USE_TEST_API?: boolean;
-
-	/** D1 database binding */
 	D1_DATABASE: D1Database;
-
-	/** URL of the frontend application */
 	FRONTEND_URL: string;
-
-	/** Secret used for initialization. Must be kept secret. */
 	INIT_SECRET: string;
 }
 
 export interface IncomingInitData {
-	initDataRaw: string;
+	init_data_raw: string;
 }
 
 export interface TelegramUser {
@@ -61,20 +53,19 @@ export interface TelegramUpdate {
 	update_id: number;
 }
 
-export interface getMe {
-	id: number;
-	is_bot: boolean;
-	first_name: string;
-	last_name?: string;
-	username?: string;
-	language_code?: string;
-	is_premium?: boolean;
-	added_to_attachment_menu?: boolean;
-	can_join_groups?: boolean;
-	can_read_all_group_messages?: boolean;
-	supports_inline_queries?: boolean;
-	can_connect_to_business?: boolean;
-	has_main_web_app?: boolean;
+interface GetMe {
+	ok: boolean;
+	result: {
+		id: number;
+		is_bot: boolean;
+		first_name: string;
+		username: string;
+		can_join_groups: boolean;
+		can_read_all_group_messages: boolean;
+		supports_inline_queries: boolean;
+		can_connect_to_business: boolean;
+		has_main_web_app: boolean;
+	};
 }
 
 export interface Chat {
@@ -106,6 +97,10 @@ export interface InitResponse {
 	start_param?: string | null;
 	start_page: 'calendar' | 'home';
 	user: dbTypes.User | null;
+}
+
+export interface DatesRequest {
+	dates: string[];
 }
 
 export type LanguageTag = string | null;

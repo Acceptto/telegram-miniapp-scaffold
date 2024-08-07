@@ -9,7 +9,7 @@ class MessageSender {
 	private language: LanguageTag;
 
 	constructor(app: App, language: LanguageTag = 'en') {
-		this.botName = app.botName ?? '';
+		this.botName = app.bot_name ?? '';
 		this.telegram = app.telegram;
 		this.language = language;
 	}

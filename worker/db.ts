@@ -1,5 +1,5 @@
 import { D1Database, D1Result } from '@cloudflare/workers-types';
-import { Setting, Message, User, Token, Calendar } from '@/types/dbTypes';
+import { Setting, Message, User, Token, Calendar, SelectedDate } from '@/types/dbTypes';
 import { TelegramUser } from '@/types/types';
 
 class Database {
@@ -9,7 +9,7 @@ class Database {
 		this.db = databaseConnection;
 	}
 
-	async getSetting(settingName: string): Promise<string | null> {
+	async getSetting(settingName: string): Promise<Setting['value'] | null> {
 		return await this.db
 			.prepare('SELECT value FROM settings WHERE name = ?')
 			.bind(settingName)
@@ -18,10 +18,10 @@ class Database {
 
 	async getLatestUpdateId(): Promise<number> {
 		const result = await this.db
-			.prepare('SELECT updateId FROM messages ORDER BY updateId DESC LIMIT 1')
-			.first('updateId');
+			.prepare('SELECT update_id FROM messages ORDER BY update_id DESC LIMIT 1')
+			.first<Pick<Message, 'update_id'>>();
 
-		return Number(result ?? 0);
+		return result ? Number(result.update_id) : 0;
 	}
 
 	async setSetting(settingName: string, settingValue: string): Promise<D1Result> {
@@ -48,7 +48,7 @@ class Database {
         VALUES (DATETIME('now'), DATETIME('now'), ?, ?)
       `
 			)
-			.bind(message, updateId)
+			.bind(message, updateId.toString())
 			.run();
 	}
 
@@ -59,7 +59,7 @@ class Database {
 		return await this.db
 			.prepare('SELECT * FROM users WHERE telegram_id = ?')
 			.bind(telegram_id)
-			.first();
+			.first<User>();
 	}
 
 	async saveUser(user: TelegramUser, auth_timestamp: number): Promise<D1Result> {
@@ -71,7 +71,7 @@ class Database {
 			last_auth_timestamp: auth_timestamp,
 			telegram_id: user.id,
 			is_bot: Number(user.is_bot),
-			first_name: user.first_name || null,
+			first_name: user.first_name,
 			last_name: user.last_name || null,
 			username: user.username || null,
 			language_code: user.language_code || null,
@@ -104,14 +104,14 @@ class Database {
 				.bind(...Object.values(userData))
 				.run();
 		} catch (error) {
-			console.error('Error saving user:', error);
+			console.error('Error saving user:', (error as Error).message);
 			throw new Error('Failed to save user data');
 		}
 	}
 
 	async saveToken(telegramId: number, tokenHash: Uint8Array): Promise<D1Result> {
 		const user = await this.getUser(telegramId);
-		if (!user) throw new Error('User not found');
+		if (!user || user.id === undefined) throw new Error('User not found');
 		return await this.db
 			.prepare(
 				`
@@ -127,15 +127,15 @@ class Database {
 		return await this.db
 			.prepare(
 				`
-      SELECT u.*
-      FROM users u
-      JOIN tokens t ON u.id = t.user_id
-      WHERE t.token_hash = ? AND t.expired_date > DATETIME('now')
-      LIMIT 1
-    `
+        SELECT u.*
+        FROM users u
+        JOIN tokens t ON u.id = t.user_id
+        WHERE t.token_hash = ? AND t.expired_date > DATETIME('now')
+        LIMIT 1
+      `
 			)
 			.bind(tokenHash)
-			.first();
+			.first<User>();
 	}
 
 	async saveCalendar(calendarJson: string, calendarRef: string, userId: number): Promise<D1Result> {
@@ -150,7 +150,7 @@ class Database {
 			.run();
 	}
 
-	async getCalendarByRef(calendarRef: string): Promise<string | null> {
+	async getCalendarByRef(calendarRef: string): Promise<Calendar['calendar_json'] | null> {
 		return await this.db
 			.prepare('SELECT calendar_json FROM calendars WHERE calendar_ref = ?')
 			.bind(calendarRef)
@@ -167,28 +167,28 @@ class Database {
 			this.db
 				.prepare(
 					`
-      INSERT INTO users (created_date, updated_date, last_auth_timestamp, telegram_id, is_bot, first_name, last_name, username, language_code, is_premium, added_to_attachment_menu, allows_write_to_pm, photo_url)
-      VALUES (DATETIME('now'), DATETIME('now'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(telegram_id) DO UPDATE SET
-        updated_date = DATETIME('now'),
-        last_auth_timestamp = COALESCE(excluded.last_auth_timestamp, last_auth_timestamp),
-        is_bot = COALESCE(excluded.is_bot, is_bot),
-        first_name = excluded.first_name,
-        last_name = excluded.last_name,
-        username = excluded.username,
-        language_code = COALESCE(excluded.language_code, language_code),
-        is_premium = COALESCE(excluded.is_premium, is_premium),
-        added_to_attachment_menu = COALESCE(excluded.added_to_attachment_menu, added_to_attachment_menu),
-        allows_write_to_pm = COALESCE(excluded.allows_write_to_pm, allows_write_to_pm),
-        photo_url = COALESCE(excluded.photo_url, photo_url)
-      WHERE excluded.last_auth_timestamp > users.last_auth_timestamp
-    `
+          INSERT INTO users (created_date, updated_date, last_auth_timestamp, telegram_id, is_bot, first_name, last_name, username, language_code, is_premium, added_to_attachment_menu, allows_write_to_pm, photo_url)
+          VALUES (DATETIME('now'), DATETIME('now'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(telegram_id) DO UPDATE SET
+            updated_date = DATETIME('now'),
+            last_auth_timestamp = COALESCE(excluded.last_auth_timestamp, last_auth_timestamp),
+            is_bot = COALESCE(excluded.is_bot, is_bot),
+            first_name = excluded.first_name,
+            last_name = excluded.last_name,
+            username = excluded.username,
+            language_code = COALESCE(excluded.language_code, language_code),
+            is_premium = COALESCE(excluded.is_premium, is_premium),
+            added_to_attachment_menu = COALESCE(excluded.added_to_attachment_menu, added_to_attachment_menu),
+            allows_write_to_pm = COALESCE(excluded.allows_write_to_pm, allows_write_to_pm),
+            photo_url = COALESCE(excluded.photo_url, photo_url)
+          WHERE excluded.last_auth_timestamp > users.last_auth_timestamp
+        `
 				)
 				.bind(
 					auth_timestamp,
 					user.id,
 					Number(user.is_bot),
-					user.first_name || null,
+					user.first_name,
 					user.last_name || null,
 					user.username || null,
 					user.language_code || null,
@@ -200,9 +200,9 @@ class Database {
 			this.db
 				.prepare(
 					`
-      INSERT INTO tokens (created_date, updated_date, expired_date, user_id, token_hash)
-      VALUES (DATETIME('now'), DATETIME('now'), DATETIME('now', '+1 day'), (SELECT id FROM users WHERE telegram_id = ?), ?)
-    `
+          INSERT INTO tokens (created_date, updated_date, expired_date, user_id, token_hash)
+          VALUES (DATETIME('now'), DATETIME('now'), DATETIME('now', '+1 day'), (SELECT id FROM users WHERE telegram_id = ?), ?)
+        `
 				)
 				.bind(user.id, tokenHash),
 			this.db.prepare('COMMIT'),
