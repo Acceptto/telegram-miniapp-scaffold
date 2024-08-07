@@ -54,7 +54,7 @@ jobs:
 
       - name: Send init command to worker
         run: |
-          response=$(curl -X POST -H "Authorization: Bearer ${{ steps.deploy_worker.outputs.init_secret }}" \
+          curl -X POST -H "Authorization: Bearer ${{ steps.deploy_worker.outputs.init_secret }}" \
             -H "Content-Type: application/json" \
             -d '{"externalUrl": "${{ inputs.worker_url }}"}' \
             --max-time 10 \
@@ -63,5 +63,4 @@ jobs:
             --retry-max-time 40 \
             --retry-all-errors \
             --fail \
-            ${{ inputs.worker_url }}/init 2>&1)
-          echo "Response: $response"
+            ${{ inputs.worker_url }}/init
