@@ -3,14 +3,14 @@ import { useLaunchParams, useCloudStorage } from '@telegram-apps/sdk-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Text, Button } from '@telegram-apps/telegram-ui';
 import LoadingSpinner from '@/utils/loadingSpinner';
-import { initMiniApp, InitMiniAppResponse } from '@/api';
+import { initMiniApp } from '@/api';
 import Calendar from '@/pages/Calendar/Calendar';
 import Home from '@/pages/Home/Home';
 import Onboarding from '@/pages/Onboarding/Onboarding';
 import { cacheWithCloudStorage } from '@/utils/cacheWithCloudStorage';
 import { LanguageProvider, useLanguage } from '@/utils/LanguageContext';
 import { getSupportedLanguageCode } from '@/utils/i18n';
-import { TelegramInitData } from '@/types/types';
+import { TelegramInitData, InitMiniAppResponse } from '@/types/types';
 
 const INIT_QUERY_KEY = 'initData';
 const ONBOARDING_STATUS_KEY = 'hasCompletedOnboarding';
@@ -23,7 +23,7 @@ const ERROR_MESSAGES = {
 const useInitMiniApp = () => {
 	const { initDataRaw } = useLaunchParams();
 	return useQuery<InitMiniAppResponse, Error, InitMiniAppResponse, [string, TelegramInitData]>({
-		queryKey: [INIT_QUERY_KEY, { initDataRaw: initDataRaw || '' }],
+		queryKey: [INIT_QUERY_KEY, { init_data_raw: initDataRaw || '' }],
 		queryFn: ({ queryKey }) => initMiniApp(queryKey[1]),
 		enabled: !!initDataRaw,
 		retry: false,

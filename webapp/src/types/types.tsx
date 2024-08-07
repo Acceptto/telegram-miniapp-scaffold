@@ -4,7 +4,7 @@ enum StartPage {
 }
 
 export interface TelegramInitData {
-	initDataRaw: string;
+	init_data_raw: string;
 }
 
 export interface User {
