@@ -74,11 +74,11 @@ router.post('/miniApp/init', async (request: Request, app: App) => {
 		}
 
 		const currentTime = Math.floor(Date.now() / 1000);
-		if (currentTime - data.data.auth_date > 600) {
+		if (currentTime - data.auth_date > 600) {
 			throw new AppError(400, 'Stale data, please restart the app');
 		}
 
-		if (!data.data.user || typeof data.data.user.id !== 'number') {
+		if (!data.user || typeof data.user.id !== 'number') {
 			throw new AppError(400, 'Invalid user data');
 		}
 
@@ -90,14 +90,14 @@ router.post('/miniApp/init', async (request: Request, app: App) => {
 
 		const tokenHash = await sha256(token);
 		//await db.saveToken(data.data.user.id, tokenHash);
-		await db.saveUserAndToken(data.data.user, data.data.auth_date, tokenHash);
+		await db.saveUserAndToken(data.user, data.auth_date, tokenHash);
 
 		return new Response(
 			JSON.stringify({
 				token,
-				start_param: data.data.start_param ?? null,
-				start_page: data.data.start_param ? 'calendar' : 'home',
-				user: await db.getUser(data.data.user.id),
+				start_param: data.start_param ?? null,
+				start_page: data.start_param ? 'calendar' : 'home',
+				user: await db.getUser(data.user.id),
 			} satisfies InitResponse),
 			{
 				status: 200,

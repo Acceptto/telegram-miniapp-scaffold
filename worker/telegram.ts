@@ -16,7 +16,7 @@ class TelegramAPI {
 	async calculateHashes(initData: string): Promise<{
 		expected_hash: string;
 		calculated_hash: string;
-		data: CalculateHashesResult;
+		data: CalculateHashesResult['data'];
 	}> {
 		const urlParams = new URLSearchParams(initData);
 		const expected_hash = urlParams.get('hash') || '';
