@@ -15,7 +15,7 @@ export interface App {
 export interface Env extends Record<string, unknown> {
 	TELEGRAM_BOT_TOKEN: string;
 	TELEGRAM_USE_TEST_API?: boolean;
-	D1_DATABASE: D1Database;
+	D1_DATABASE: string;
 	FRONTEND_URL: string;
 	INIT_SECRET: string;
 }
